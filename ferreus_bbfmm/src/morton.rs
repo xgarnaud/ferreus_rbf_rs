@@ -24,10 +24,9 @@ use crate::morton_constants::{
 /// The morton code implementation for the linear heirarchical tree is based on that of:
 /// - [`AdaptOctree`](https://github.com/Excalibur-SLE/AdaptOctree)
 /// - [`Libmorton`](https://github.com/Forceflow/libmorton)
-
+///
 /// Gets the side length of a cell for the current level.
 pub fn get_side_length(radius: f64, level: u64) -> f64 {
-    
     2.0 * radius / ((1 << level) as f64)
 }
 
@@ -35,7 +34,7 @@ pub fn get_side_length(radius: f64, level: u64) -> f64 {
 pub fn point_to_anchor(
     point: RowRef<f64>,
     level: &u64,
-    displacement: &Vec<f64>,
+    displacement: &[f64],
     side_length: &f64,
 ) -> Vec<u64> {
     let n_dims = point.ncols();
@@ -277,10 +276,7 @@ pub fn get_siblings(key: &u64, dimensions: &Dimensions) -> Vec<u64> {
 
     (0..num_siblings)
         .into_iter()
-        .map(|suffix| {
-            
-            ((root | suffix) << LEVEL_DISPLACEMENT) | level
-        })
+        .map(|suffix| ((root | suffix) << LEVEL_DISPLACEMENT) | level)
         .collect()
 }
 
@@ -308,7 +304,7 @@ pub fn get_child_index(child: &u64, dimensions: &Dimensions) -> usize {
 pub fn are_adjacent(
     cell_a: u64,
     cell_b: u64,
-    tree_center: &Vec<f64>,
+    tree_center: &[f64],
     tree_radius: f64,
     dimensions: &Dimensions,
 ) -> bool {
@@ -327,7 +323,7 @@ pub fn are_adjacent(
 // Gets the center and radius of the cell, given a Morton key and tree center and radius.
 pub fn get_center_length(
     key: u64,
-    tree_center: &Vec<f64>,
+    tree_center: &[f64],
     tree_radius: f64,
     dimensions: &Dimensions,
 ) -> (Vec<f64>, f64) {
@@ -346,7 +342,7 @@ pub fn get_center_length(
 }
 
 // Calculates the center and radius of the tree required by the given extents.
-pub fn calculate_tree_center_and_radius(extents: &Vec<f64>) -> (Vec<f64>, f64) {
+pub fn calculate_tree_center_and_radius(extents: &[f64]) -> (Vec<f64>, f64) {
     let eps = 1E-3;
     let dimensions = extents.len() / 2;
     let mut lower_bounds: Vec<f64> = extents[0..dimensions].to_vec();

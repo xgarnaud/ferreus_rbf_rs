@@ -61,7 +61,7 @@ impl<T: ComplexField> LltRfp<T> {
 
     pub fn solve(&self, rhs: &Mat<T>) -> Mat<T> {
         // Solve A @ X = B in RFP format.
-        
+
         cholesky_rfp_solve(&self.L, rhs, &self.side)
     }
 }
@@ -473,7 +473,6 @@ fn cholesky_rfp_solve<T: ComplexField>(AR: &Mat<T>, B: &Mat<T>, side: &Side) -> 
 pub fn pack_tril_colmajor<T: ComplexField>(a: MatRef<'_, T>) -> Mat<T> {
     let (m, n) = a.shape();
     assert!(m == n, "square matrix required");
-    let n = n;
     let n_tp = n * (n + 1) / 2;
 
     let mut out = Mat::zeros(n_tp, 1);
@@ -660,7 +659,7 @@ mod tests {
             let (ldar, n1) = ar.shape();
             assert_eq!(n % 2, 0);
             assert_eq!(ldar, n + 1, "LDAR for even n should be N+1");
-            assert_eq!(n1, (n + 1) / 2);
+            assert_eq!(n1, n.div_ceil(2));
         }
         // odd
         for n in [1usize, 3, 5, 7, 9, 11] {
@@ -669,7 +668,7 @@ mod tests {
             let (ldar, n1) = ar.shape();
             assert_eq!(n % 2, 1);
             assert_eq!(ldar, n, "LDAR for odd n should be N");
-            assert_eq!(n1, (n + 1) / 2);
+            assert_eq!(n1, n.div_ceil(2));
         }
     }
 

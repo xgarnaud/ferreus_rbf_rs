@@ -19,7 +19,6 @@ use ferreus_rbf::{
     isosurfacing::BoundaryClosure,
     progress::{ProgressMsg, ProgressSink, closure_sink},
 };
-use ferreus_rbf_utils;
 use std::{env, path::Path, sync::Arc};
 
 /// Nice float formatter for filenames: trims trailing zeros and dots.
@@ -135,7 +134,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     //Save the isosurface out to an obj file
     let name = format!("isosurface_spheroidal_drift_{}m", fmt_num(resolution));
-    let outpath = cwd.join("examples").join(format!("{}.obj", &name));
+    let outpath = cwd.join("examples").join(format!("{}.obj", name));
     mesh.save_obj(outpath, &name)?;
 
     Ok(())

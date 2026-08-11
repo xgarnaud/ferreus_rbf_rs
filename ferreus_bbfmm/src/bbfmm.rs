@@ -261,7 +261,7 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
     /// * `source_points`: Input matrix of shape (N, D), where N is the number of points, D is the dimensionality.
     /// * `interpolation_order`: Number of Chebyshev nodes per dimension.
     /// * `kernel_function`: Kernel function used for evaluating interactions.
-    ///    Must implement [`KernelFunction`]
+    ///   Must implement [`KernelFunction`]
     /// * `adaptive_tree`: If 'true', uses adaptive subdivision of the tree.
     /// * `sparse`: If `true`, constructs a sparse tree that omits empty leaves.
     /// * `extents`: Optional bounding box `[xmin, xmax, ymin, ymax, ...]`; if `None`, computed from data.
@@ -379,7 +379,7 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
     ///
     /// # Arguments
     /// * `weights`: Matrix of shape (N, K), where N is the number of source points and K is the number of right-hand sides
-    ///              to evaluate, containing source point weights (values)
+    ///   to evaluate, containing source point weights (values)
     pub fn set_weights(&mut self, weights: &MatRef<f64>) {
         self.nrhs = weights.ncols();
         self.reset_multipole_coefficients();
@@ -405,7 +405,7 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
     ///
     /// # Arguments
     /// * `weights`: Matrix of shape (N, K), where N is the number of source points and K is the number of right-hand sides
-    ///              to evaluate, containing source point weights (values)
+    ///   to evaluate, containing source point weights (values)
     /// * `target points`: Matrix of shape (N, D), where N is the number of target points and D is the dimensionality.
     pub fn evaluate(
         &mut self,
@@ -422,14 +422,14 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
     ///
     /// # Arguments
     /// * `weights`: Matrix of shape (N, K), where N is the number of source points and K is the number of right-hand sides
-    ///              to evaluate, containing source point weights (values)
+    ///   to evaluate, containing source point weights (values)
     /// * `target points`: Matrix of shape (N, D), where N is the number of target points and D is the dimensionality.
     ///
     /// # Returns
     /// * `target_values` : Matrix of shape (M, K), where M is the number of target points and K is the number of right-hand sides evaluated.
     /// * `gradients` : Matrix of shape `(M, K * D)` where M is the number of target points, K is the number of right-hand-sides evaluated
-    ///     and D is the dimensionality.
-    ///     Gradient columns are laid out as `[rhs0_dx, rhs0_dy, rhs0_dz, rhs1_dx, ...]`, truncated to the tree dimensionality.    
+    ///   and D is the dimensionality.
+    ///   Gradient columns are laid out as `[rhs0_dx, rhs0_dy, rhs0_dz, rhs1_dx, ...]`, truncated to the tree dimensionality.    
     pub fn evaluate_with_gradients(
         &mut self,
         weights: &MatRef<f64>,
@@ -509,7 +509,7 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
     ///
     /// # Arguments
     /// * `weights`: Matrix of shape (N, K), where N is the number of source points and K is the number of right-hand sides
-    ///              to evaluate, containing source point weights (values)
+    ///   to evaluate, containing source point weights (values)
     ///
     /// # Returns
     /// * `target_values` : Matrix of shape (M, K), where M is the number of target points and K is the number of right-hand sides evaluated.
@@ -527,7 +527,7 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
     ///
     /// # Arguments
     /// * `weights`: Matrix of shape (N, K), where N is the number of source points and K is the number of right-hand sides
-    ///              to evaluate, containing source point weights (values)
+    ///   to evaluate, containing source point weights (values)
     /// * `target_points`: Matrix of shape (N, D), where N is the number of target points and D is the dimensionality.
     ///
     /// # Returns
@@ -547,14 +547,14 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
     ///
     /// # Arguments
     /// * `weights`: Matrix of shape (N, K), where N is the number of source points and K is the number of right-hand sides
-    ///              to evaluate, containing source point weights (values)
+    ///   to evaluate, containing source point weights (values)
     /// * `target_points`: Matrix of shape (N, D), where N is the number of target points and D is the dimensionality.
     ///
     /// # Returns
     /// * `target_values` : Matrix of shape (M, K), where M is the number of target points and K is the number of right-hand sides evaluated.
     /// * `gradients` : Matrix of shape `(M, K * D)` where M is the number of target points, K is the number of right-hand-sides evaluated
-    ///     and D is the dimensionality.
-    ///     Gradient columns are laid out as `[rhs0_dx, rhs0_dy, rhs0_dz, rhs1_dx, ...]`, truncated to the tree dimensionality.   
+    ///   and D is the dimensionality.
+    ///   Gradient columns are laid out as `[rhs0_dx, rhs0_dy, rhs0_dz, rhs1_dx, ...]`, truncated to the tree dimensionality.   
     pub fn evaluate_leaves_with_gradients(
         &mut self,
         weights: &MatRef<f64>,
@@ -671,11 +671,7 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
         });
 
         for level in (1..self.depth).into_iter().rev() {
-            let level_keys = self
-                .tree_lists
-                .level_cells_map
-                .get(&{ level })
-                .unwrap();
+            let level_keys = self.tree_lists.level_cells_map.get(&{ level }).unwrap();
 
             level_keys.par_iter().for_each(|parent| {
                 if cells_with_sources.contains(parent) {
@@ -776,75 +772,70 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
     fn downward_pass(&mut self, source_values: &MatRef<f64>, cells_with_targets: &HashSet<u64>) {
         let local_coefficients_ref = &self.local_coefficients;
 
-        for level in (1..self.depth + 1).into_iter() {
-            let level_keys = self
-                .tree_lists
-                .level_cells_map
-                .get(&{ level })
-                .unwrap();
+        for level in 1..self.depth + 1 {
+            let level_keys = self.tree_lists.level_cells_map.get(&{ level }).unwrap();
 
             level_keys.par_iter().for_each(|key| {
                 if cells_with_targets.contains(key) {
                     let cell_column_index = self.tree_lists.key_to_index_map.get(key).unwrap();
 
                     if let Some(v_list) = self.tree_lists.v_lists.get(key)
-                        && !v_list.is_empty() {
-                            self.multipole_to_local(
-                                *key,
-                                level,
-                                v_list,
-                                local_coefficients_ref,
-                                cell_column_index,
-                            );
-                        }
+                        && !v_list.is_empty()
+                    {
+                        self.multipole_to_local(
+                            *key,
+                            level,
+                            v_list,
+                            local_coefficients_ref,
+                            cell_column_index,
+                        );
+                    }
 
                     if self.adaptive_tree
                         && let Some(x_list) = self.tree_lists.x_lists.as_ref().unwrap().get(key)
-                            && !x_list.is_empty() {
-                                let (cell_center, cell_length) = morton::get_center_length(
-                                    *key,
-                                    &self.center,
-                                    self.radius,
-                                    &self.dimensions,
-                                );
+                        && !x_list.is_empty()
+                    {
+                        let (cell_center, cell_length) = morton::get_center_length(
+                            *key,
+                            &self.center,
+                            self.radius,
+                            &self.dimensions,
+                        );
 
-                                let cell_cheb_nodes = chebyshev::scale_cheb_nodes_to_cell(
-                                    &self.precompute_operators.nodes_nd,
-                                    &cell_center,
-                                    &cell_length,
-                                );
+                        let cell_cheb_nodes = chebyshev::scale_cheb_nodes_to_cell(
+                            &self.precompute_operators.nodes_nd,
+                            &cell_center,
+                            &cell_length,
+                        );
 
-                                self.particle_to_local(
-                                    x_list,
-                                    &cell_cheb_nodes,
-                                    local_coefficients_ref,
-                                    cell_column_index,
-                                    source_values,
-                                );
-                            }
+                        self.particle_to_local(
+                            x_list,
+                            &cell_cheb_nodes,
+                            local_coefficients_ref,
+                            cell_column_index,
+                            source_values,
+                        );
+                    }
                 }
             });
         }
 
-        for level in (1..self.depth + 1).into_iter() {
-            let level_keys = self
-                .tree_lists
-                .level_cells_map
-                .get(&{ level })
-                .unwrap();
+        for level in 1..self.depth + 1 {
+            let level_keys = self.tree_lists.level_cells_map.get(&{ level }).unwrap();
 
             level_keys.par_iter().for_each(|key| {
                 if cells_with_targets.contains(key) {
                     let cell_column_index = self.tree_lists.key_to_index_map.get(key).unwrap();
                     if let Some(children) = self.tree_lists.children.get(key)
-                        && !children.is_empty() {
-                            self.local_to_local(
-                                children,
-                                local_coefficients_ref,
-                                cell_column_index,
-                                cells_with_targets,
-                            );
-                        }
+                        && !children.is_empty()
+                    {
+                        self.local_to_local(
+                            children,
+                            local_coefficients_ref,
+                            cell_column_index,
+                            cells_with_targets,
+                        );
+                    }
                 }
             });
         }
@@ -980,7 +971,7 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
     }
 
     /// Calculates the index of the M2L vector based on the distance vector between the two cells.
-    fn calculate_m2l_transfer_index(&self, vector_between_cell: &Vec<i32>) -> usize {
+    fn calculate_m2l_transfer_index(&self, vector_between_cell: &[i32]) -> usize {
         let powers = (0..self.dimensions as u32).rev();
         let base: u32 = 7;
 
@@ -1044,7 +1035,7 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
     /// Propogates the local coefficients from the parent cell to its children
     fn local_to_local(
         &self,
-        children: &Vec<u64>,
+        children: &[u64],
         local_coefficients_ref: &Mat<f64>,
         cell_column_index: &usize,
         cells_with_targets: &HashSet<u64>,
@@ -1116,28 +1107,30 @@ impl<K: KernelFunction + Send + Sync> FmmTree<K> {
             .par_iter()
             .for_each(|(leaf, leaf_target_indices)| {
                 if let Some(u_list) = self.tree_lists.u_lists.get(leaf)
-                    && !u_list.is_empty() {
-                        self.particle_to_particle::<WITH_GRADS>(
-                            u_list,
-                            target_points,
-                            leaf_target_indices,
-                            target_values_ref,
-                            target_gradients_ref,
-                            source_values,
-                        );
-                    }
+                    && !u_list.is_empty()
+                {
+                    self.particle_to_particle::<WITH_GRADS>(
+                        u_list,
+                        target_points,
+                        leaf_target_indices,
+                        target_values_ref,
+                        target_gradients_ref,
+                        source_values,
+                    );
+                }
 
                 if self.adaptive_tree
                     && let Some(w_list) = self.tree_lists.w_lists.as_ref().unwrap().get(leaf)
-                        && !w_list.is_empty() {
-                            self.multipole_to_particle::<WITH_GRADS>(
-                                w_list,
-                                target_points,
-                                leaf_target_indices,
-                                target_values_ref,
-                                target_gradients_ref,
-                            );
-                        }
+                    && !w_list.is_empty()
+                {
+                    self.multipole_to_particle::<WITH_GRADS>(
+                        w_list,
+                        target_points,
+                        leaf_target_indices,
+                        target_values_ref,
+                        target_gradients_ref,
+                    );
+                }
 
                 self.local_to_particle::<WITH_GRADS>(
                     leaf,

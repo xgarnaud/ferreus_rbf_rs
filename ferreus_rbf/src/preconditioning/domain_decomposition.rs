@@ -48,9 +48,9 @@ pub struct Level {
 
 impl Level {
     /// Creates a level with the given active point ids.
-    fn new(point_indices: &Vec<usize>) -> Self {
+    fn new(point_indices: &[usize]) -> Self {
         Self {
-            point_indices: point_indices.clone(),
+            point_indices: point_indices.to_vec(),
             leaf_domains: Vec::new(),
         }
     }
@@ -188,8 +188,7 @@ impl DDMTree {
 
                 let num_domain_internal_points = internal_indices.len();
 
-                let internal_points =
-                    ferreus_rbf_utils::select_mat_rows(points, &internal_indices);
+                let internal_points = ferreus_rbf_utils::select_mat_rows(points, &internal_indices);
 
                 let sample_size = num_domain_internal_points.min(num_coarse_points);
 
@@ -238,8 +237,6 @@ impl DDMTree {
                 let neighbours =
                     rtree.find_neighbours(fine_level.leaf_domains[i].extents.as_slice(), i);
 
-                let num_neighbours = neighbours.len();
-
                 let num_overlap_points =
                     ((fine_level.leaf_domains[i].overlapping_point_indices.len() * 2) as f64
                         * ddm_params.overlap_quota)
@@ -247,13 +244,12 @@ impl DDMTree {
 
                 let mut neighbour_indices: Vec<usize> = Vec::new();
 
-                for j in 0..num_neighbours {
-                    let neighbour_internal_indices: Vec<usize> = fine_level.leaf_domains
-                        [neighbours[j]]
+                for neighbour in neighbours {
+                    let neighbour_internal_indices: Vec<usize> = fine_level.leaf_domains[neighbour]
                         .overlapping_point_indices
                         .iter()
                         .zip(
-                            fine_level.leaf_domains[neighbours[j]]
+                            fine_level.leaf_domains[neighbour]
                                 .internal_points_mask
                                 .iter(),
                         )
@@ -275,7 +271,7 @@ impl DDMTree {
                             .enumerate()
                             .map(|(pidx, elem)| {
                                 let min_test = elem.min(box_max[pidx]);
-                                
+
                                 min_test.max(box_min[pidx])
                             })
                             .collect();
@@ -472,7 +468,7 @@ mod tests {
         };
         let interpolant_settings = generate_interpolant_settings();
         let points = generate_points(80, dim);
-        let ddm = DDMTree::new(&points, &interpolant_settings, params.clone(), &None);
+        let ddm = DDMTree::new(&points, &interpolant_settings, params, &None);
 
         if let Some(lvl0) = ddm.levels.first() {
             for dom in &lvl0.leaf_domains {

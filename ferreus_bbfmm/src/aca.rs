@@ -215,7 +215,6 @@ pub fn calculate_singular_values_cutoff(sigma: Vec<f64>, epsilon: &f64) -> usize
     let eps_qr = cumulative_sum_sqr[0] * epsilon * epsilon;
 
     // Find smallest index where residual falls below threshold
-    
 
     cumulative_sum_sqr
         .iter()
@@ -231,7 +230,7 @@ pub fn calculate_singular_values_cutoff(sigma: Vec<f64>, epsilon: &f64) -> usize
 ///
 /// # Returns
 /// Vector of cumulative squared sum in reverse.
-fn inverse_cumulative_sum_of_squares(sigma: &Vec<f64>) -> Vec<f64> {
+fn inverse_cumulative_sum_of_squares(sigma: &[f64]) -> Vec<f64> {
     // Accumulate sum of squares in reverse order
     let cumulative_sum_squared: Vec<f64> = sigma
         .iter()

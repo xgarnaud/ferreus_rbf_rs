@@ -16,10 +16,10 @@
 //! 1. For one intersected lattice edge `oa`, visit each calculation plane around
 //!    that edge.
 //! 2. Each calculation plane contains two neighbouring triangles:
-//!       `o-a-b` and `o-a-c`.
+//!    `o-a-b` and `o-a-c`.
 //! 3. Use Equation (1) to estimate `theta_b` and `theta_c`.
 //! 4. Use Equation (2) to compute the raw curvature angle:
-//!       `alpha = |theta_b| + |theta_c|`.
+//!    `alpha = |theta_b| + |theta_c|`.
 //! 5. Estimate the local surface normal by adding the per-plane normal
 //!    projections plus a unit vector along `oa`.
 //! 6. Use Equation (3) to adjust `alpha` to `beta` for the plane orientation.

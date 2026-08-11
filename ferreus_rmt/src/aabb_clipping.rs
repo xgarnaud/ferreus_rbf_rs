@@ -17,6 +17,7 @@
 
 /// Axis-aligned bounding box with three-dimensional minimum and maximum corners.
 #[derive(Clone, Copy, Debug)]
+#[allow(clippy::upper_case_acronyms)]
 pub struct AABB<T> {
     /// Minimum x, y, and z coordinates.
     pub min_corner: [T; 3],
@@ -253,13 +254,14 @@ fn clip_polygon_to_plane(
         let curr_inside = point_inside_plane(curr, plane, extents, eps);
 
         if curr_inside != prev_inside
-            && let Some(t) = segment_plane_t(prev, curr, plane, extents, eps) {
-                clipped.push(snap_near_bbox(
-                    snap_to_plane(interpolate_points(prev, curr, t), plane, extents),
-                    extents,
-                    eps,
-                ));
-            }
+            && let Some(t) = segment_plane_t(prev, curr, plane, extents, eps)
+        {
+            clipped.push(snap_near_bbox(
+                snap_to_plane(interpolate_points(prev, curr, t), plane, extents),
+                extents,
+                eps,
+            ));
+        }
 
         if curr_inside {
             clipped.push(snap_near_bbox(curr, extents, eps));

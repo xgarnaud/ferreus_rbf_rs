@@ -17,9 +17,10 @@ use super::{
 use faer::{Mat, MatRef};
 use rayon::prelude::*;
 
+#[allow(clippy::too_many_arguments)]
 pub fn build_tree(
     points: &Mat<f64>,
-    center: &Vec<f64>,
+    center: &[f64],
     radius: f64,
     max_points_per_cell: usize,
     store_empty_leaves: bool,
@@ -59,18 +60,12 @@ pub fn build_tree(
                         morton::point_to_anchor(point, &child_level, &displacement, &side_length);
                     let key = morton::encode_morton_point(anchor, &dimensions);
                     cell_children.insert(key);
-                    cells_point_indices
-                        .entry(key)
-                        .or_default()
-                        .push(i);
+                    cells_point_indices.entry(key).or_default().push(i);
                 }
             }
 
             let active_children: Vec<u64> = match store_empty_leaves {
-                true => {
-                    
-                    morton::get_children(&cell, &dimensions)
-                }
+                true => morton::get_children(&cell, &dimensions),
                 false => cell_children.iter().copied().collect(),
             };
 
@@ -174,10 +169,11 @@ pub fn build_tree(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn get_interaction_lists_adaptive(
     complete_tree: &HashSet<u64>,
     leaves_set: &HashSet<u64>,
-    tree_center: &Vec<f64>,
+    tree_center: &[f64],
     tree_radius: &f64,
     dim: &Dimensions,
 ) -> (
@@ -310,13 +306,8 @@ pub fn get_interaction_lists_adaptive(
                             continue;
                         }
 
-                        if morton::are_adjacent(
-                            *key,
-                            current_cell,
-                            tree_center,
-                            *tree_radius,
-                            dim,
-                        ) {
+                        if morton::are_adjacent(*key, current_cell, tree_center, *tree_radius, dim)
+                        {
                             if leaves_set.contains(&current_cell) {
                                 cell_u_list.insert(current_cell);
                             } else {
@@ -334,13 +325,8 @@ pub fn get_interaction_lists_adaptive(
                         .collect();
 
                     while let Some(current_cell) = colleagues_descendants.pop_front() {
-                        if morton::are_adjacent(
-                            *key,
-                            current_cell,
-                            tree_center,
-                            *tree_radius,
-                            dim,
-                        ) {
+                        if morton::are_adjacent(*key, current_cell, tree_center, *tree_radius, dim)
+                        {
                             // Adjacent cells to the key go to the u_list
                             if leaves_set.contains(&current_cell) {
                                 cell_u_list.insert(current_cell);
@@ -399,7 +385,7 @@ fn get_interaction_lists_regular(
     leaves: &HashSet<u64>,
     cells_points_indices: &HashMap<u64, Vec<usize>>,
     children: &HashMap<u64, Vec<u64>>,
-    center: &Vec<f64>,
+    center: &[f64],
     radius: &f64,
     dimensions: &Dimensions,
 ) -> (HashMap<u64, HashSet<u64>>, HashMap<u64, HashSet<u64>>) {
@@ -436,6 +422,7 @@ fn get_interaction_lists_regular(
     (u_lists, v_lists)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn compute_u_v_list(
     cell: &u64,
     children: &HashMap<u64, Vec<u64>>,
@@ -443,7 +430,7 @@ fn compute_u_v_list(
     dimensions: &Dimensions,
     tree: &HashSet<u64>,
     leaves: &HashSet<u64>,
-    center: &Vec<f64>,
+    center: &[f64],
     radius: &f64,
 ) -> (HashSet<u64>, HashSet<u64>) {
     let mut u_list = HashSet::new();
@@ -451,13 +438,14 @@ fn compute_u_v_list(
 
     if let Some(parent) = morton::get_parent(cell, dimensions) {
         if leaves.contains(cell)
-            && let Some(siblings) = children.get(&parent) {
-                for sib in siblings {
-                    if cells_points_indices.get(sib).is_some() {
-                        u_list.insert(*sib);
-                    }
+            && let Some(siblings) = children.get(&parent)
+        {
+            for sib in siblings {
+                if cells_points_indices.get(sib).is_some() {
+                    u_list.insert(*sib);
                 }
             }
+        }
         let parent_colleagues: Vec<u64> = morton::get_neighbours(parent, dimensions)
             .into_iter()
             .filter(|key| tree.contains(key))
@@ -518,7 +506,7 @@ pub fn points_to_keys(
     Ok(keys)
 }
 
-pub fn get_points_to_leaves_map(point_keys: &Vec<u64>) -> HashMap<u64, Vec<usize>> {
+pub fn get_points_to_leaves_map(point_keys: &[u64]) -> HashMap<u64, Vec<usize>> {
     let mut indices_map: HashMap<u64, Vec<usize>> = HashMap::new();
 
     for (i, &value) in point_keys.iter().enumerate() {

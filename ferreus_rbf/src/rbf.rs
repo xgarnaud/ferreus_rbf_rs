@@ -625,8 +625,6 @@ impl RBFInterpolator {
             evaluator_extents = Some(ferreus_rbf_utils::get_pointarray_extents(points.as_ref()));
         }
 
-        
-
         FmmTree::new(
             points,
             self.params.fmm_params.interpolation_order,
@@ -641,20 +639,15 @@ impl RBFInterpolator {
     fn _get_evaluator_union_extents(
         &self,
         target_points: Option<MatRef<f64>>,
-        target_extents: Option<&Vec<f64>>,
+        target_extents: Option<&[f64]>,
     ) -> Vec<f64> {
         let source_extents = ferreus_rbf_utils::get_pointarray_extents(self.points.as_ref());
         let target_extents = match target_points.is_some() {
             true => Some(ferreus_rbf_utils::get_pointarray_extents(
                 target_points.unwrap(),
             )),
-            false => match target_extents.is_some() {
-                true => Some(target_extents.unwrap().to_vec()),
-                false => None,
-            },
+            false => target_extents.map(|ext| ext.to_vec()),
         };
-
-        
 
         match target_extents.is_some() {
             true => union_extents(&source_extents, target_extents.unwrap().as_slice()),
@@ -965,12 +958,12 @@ impl RBFInterpolator {
     /// ```    
     pub fn build_isosurface(
         &mut self,
-        extents: &Vec<f64>,
+        extents: &[f64],
         resolution: f64,
         isovalue: f64,
         boundary_closure: BoundaryClosure,
     ) -> Mesh {
-        self.build_isosurfaces(extents, resolution, &[isovalue].into(), boundary_closure)
+        self.build_isosurfaces(extents, resolution, &[isovalue], boundary_closure)
             .into_iter()
             .next()
             .unwrap()
@@ -991,9 +984,9 @@ impl RBFInterpolator {
     /// ```
     pub fn build_isosurfaces(
         &mut self,
-        extents: &Vec<f64>,
+        extents: &[f64],
         resolution: f64,
-        isovalues: &Vec<f64>,
+        isovalues: &[f64],
         boundary_closure: BoundaryClosure,
     ) -> Vec<Mesh> {
         let dimensions = self.points.ncols();
@@ -1359,12 +1352,11 @@ pub(crate) fn fast_matrix_vector_product(
 
     let weights_len = weights.nrows() - *basis_size;
 
-    let evaluation_indices: Vec<usize>;
-    if target_indices.is_none() {
-        evaluation_indices = (0..weights_len).collect();
+    let evaluation_indices = if let Some(target_indices) = target_indices {
+        target_indices.clone()
     } else {
-        evaluation_indices = target_indices.unwrap().clone();
-    }
+        (0..weights_len).collect()
+    };
 
     fmm_tree.set_weights(weights);
 

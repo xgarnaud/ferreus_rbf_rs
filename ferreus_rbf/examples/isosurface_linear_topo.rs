@@ -17,7 +17,6 @@ use ferreus_rbf::{
     isosurfacing::{BoundaryClosure, ClusterMethod, build_isosurface},
     progress::{ProgressMsg, ProgressSink, ProgressSinkExt, closure_sink},
 };
-use ferreus_rbf_utils;
 use std::{cell::RefCell, env, path::Path, rc::Rc, sync::Arc};
 
 /// Nice float formatter for filenames: trims trailing zeros and dots.
@@ -106,7 +105,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut rbfi = RBFInterpolator::builder(
         source_points.clone(),
         source_values.clone(),
-        interpolant_settings.clone(),
+        interpolant_settings,
     )
     .progress_callback(callback.clone())
     .build();
@@ -206,7 +205,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         fmt_num(isovalue),
         fmt_num(resolution)
     );
-    let outpath = cwd.join("examples").join(format!("{}.obj", &name));
+    let outpath = cwd.join("examples").join(format!("{}.obj", name));
     mesh.save_obj(outpath, &name)?;
 
     Ok(())

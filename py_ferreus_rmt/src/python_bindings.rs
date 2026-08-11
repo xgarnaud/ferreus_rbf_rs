@@ -267,6 +267,7 @@ impl Mesh {
     boundary_closure=BoundaryClosure::None,
     progress_callback=None,
 ))]
+#[allow(clippy::too_many_arguments)]
 pub fn build_isosurface(
     py: Python<'_>,
     seed_points: PyReadonlyArray2<'_, f64>,
@@ -387,6 +388,7 @@ pub fn build_isosurface(
     boundary_closure=BoundaryClosure::None,
     progress_callback=None
 ))]
+#[allow(clippy::too_many_arguments)]
 pub fn build_isosurfaces<'py>(
     py: Python<'py>,
     seed_points: PyReadonlyArray2<'_, f64>,

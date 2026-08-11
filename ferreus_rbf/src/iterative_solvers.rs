@@ -35,6 +35,7 @@ use std::sync::Arc;
 ///
 /// # Returns
 /// - `x`: Approximate solution
+#[allow(clippy::too_many_arguments)]
 pub fn fgmres<A, M>(
     a: &A,
     b: MatRef<f64>,

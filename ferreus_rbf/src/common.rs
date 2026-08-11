@@ -54,8 +54,6 @@ pub fn generate_random_points(n: usize, d: usize, seed: Option<u64>) -> Mat<f64>
         false => StdRng::from_os_rng(),
     };
 
-    
-
     Mat::from_fn(n, d, |_, _| rng.random_range(0.0..1.0))
 }
 
@@ -63,18 +61,14 @@ pub fn generate_random_points(n: usize, d: usize, seed: Option<u64>) -> Mat<f64>
 /// then expands the bounds by one resolution unit and the given buffer.
 ///
 /// # Arguments
-/// * `extents` - A `Vec<f64>` with either 4 elements (2D) or 6 elements (3D)
+/// * `initial_extents` - A slice (`&[f64]`) with either 4 elements (2D) or 6 elements (3D)
 /// * `resolution` - Grid resolution
 /// * `buffer` - Additional padding added to each side after snapping
 ///
 /// # Returns
-/// A new `Vec<f64>` with padded and snapped extents
-pub fn pad_and_snap_extents(
-    initial_extents: &Vec<f64>,
-    resolution: &f64,
-    buffer: &f64,
-) -> Vec<f64> {
-    let mut extents = initial_extents.clone();
+/// A new owned `Vec<f64>` with padded and snapped extents
+pub fn pad_and_snap_extents(initial_extents: &[f64], resolution: &f64, buffer: &f64) -> Vec<f64> {
+    let mut extents = initial_extents.to_vec();
     match extents.len() {
         4 => {
             // 2D: [xmin, ymin, xmax, ymax]

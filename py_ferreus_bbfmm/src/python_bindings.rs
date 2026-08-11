@@ -86,6 +86,7 @@ pub enum SpheroidalOrder {
 
 #[pyclass(eq, eq_int)]
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum M2LCompressionType {
     #[pyo3(name = "None_")]
     None,
@@ -204,6 +205,7 @@ impl FmmTree {
         extents=None,
         params=None,
     ))]
+    #[allow(clippy::too_many_arguments)]
     fn new(
         py: Python<'_>,
         source_points: Py<PyAny>,

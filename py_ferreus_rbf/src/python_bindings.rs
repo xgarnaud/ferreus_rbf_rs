@@ -192,6 +192,7 @@ impl From<BoundaryClosure> for RbfBoundaryClosure {
 
 #[pyclass(eq)]
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum Solvers {
     DDM(usize),
     FGMRES(usize, usize),
@@ -239,6 +240,7 @@ impl DDMParams {
 
 #[pyclass(eq, eq_int)]
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum FmmCompressionType {
     #[pyo3(name = "None_")]
     None,
@@ -539,12 +541,10 @@ impl From<FittingAccuracyType> for interpolant_config::FittingAccuracyType {
 }
 
 #[pyclass]
-#[derive(Debug, Clone, Copy)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct FittingAccuracy {
     inner: interpolant_config::FittingAccuracy,
 }
-
 
 #[pymethods]
 impl FittingAccuracy {
@@ -990,6 +990,7 @@ fn model_error_to_py(err: ferreus_rbf::ModelIOError) -> PyErr {
     boundary_closure=BoundaryClosure::None,
     progress_callback=None
 ))]
+#[allow(clippy::too_many_arguments)]
 pub fn build_isosurface<'py>(
     py: Python<'py>,
     seed_points: PyReadonlyArray2<'_, f64>,
@@ -1121,6 +1122,7 @@ pub fn build_isosurface<'py>(
     boundary_closure=BoundaryClosure::None,
     progress_callback=None
 ))]
+#[allow(clippy::too_many_arguments)]
 pub fn build_isosurfaces<'py>(
     py: Python<'py>,
     seed_points: PyReadonlyArray2<'_, f64>,

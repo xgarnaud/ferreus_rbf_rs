@@ -47,7 +47,7 @@ where
 
     if coarse_idx > 0 {
         // Iterate from the finest level to the second coarsest level.
-        for i in (0..coarse_idx).into_iter() {
+        for i in 0..coarse_idx {
             let level_point_indices = &ddm_tree.levels[i].point_indices;
 
             sl += solve_fine_level(

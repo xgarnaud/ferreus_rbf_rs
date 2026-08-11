@@ -103,6 +103,7 @@ fn opposite_edge(tri: Triangle3, vertex_idx: usize) -> ([f64; 3], [f64; 3]) {
 fn shared_vertex_extra_crossing(a_tri: Triangle3, b_tri: Triangle3, tolerance: f64) -> bool {
     let av = a_tri.vertices();
     let bv = b_tri.vertices();
+    #[allow(clippy::needless_range_loop)]
     for i in 0..3 {
         for j in 0..3 {
             if !av[i].close_to(bv[j], tolerance) {
