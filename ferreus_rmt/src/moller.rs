@@ -36,6 +36,7 @@ fn isect(vv0: f64, vv1: f64, vv2: f64, d0: f64, d1: f64, d2: f64) -> (f64, f64) 
     (isect0, isect1)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn compute_intervals(
     vv0: f64,
     vv1: f64,

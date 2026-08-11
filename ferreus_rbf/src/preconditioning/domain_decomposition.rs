@@ -48,9 +48,9 @@ pub struct Level {
 
 impl Level {
     /// Creates a level with the given active point ids.
-    fn new(point_indices: &Vec<usize>) -> Self {
+    fn new(point_indices: &[usize]) -> Self {
         Self {
-            point_indices: point_indices.clone(),
+            point_indices: point_indices.to_vec(),
             leaf_domains: Vec::new(),
         }
     }
@@ -83,7 +83,7 @@ impl DDMTree {
             root.internal_points_mask = vec![true; active_point_indices.len()];
 
             let overlapping_points =
-                ferreus_rbf_utils::select_mat_rows(&points, &root.overlapping_point_indices);
+                ferreus_rbf_utils::select_mat_rows(points, &root.overlapping_point_indices);
 
             root.extents = ferreus_rbf_utils::get_pointarray_extents(overlapping_points.as_ref());
 
@@ -94,16 +94,16 @@ impl DDMTree {
             let mut fine_level = Level::new(&active_point_indices);
             let mut level_course_points: Vec<usize> = Vec::new();
 
-            while active_domains.len() > 0 {
+            while !active_domains.is_empty() {
                 let current_domain = active_domains.pop_front().unwrap();
                 let current_indices = &current_domain.overlapping_point_indices;
                 let num_domain_points = current_indices.len();
 
-                let current_points = ferreus_rbf_utils::select_mat_rows(&points, &current_indices);
+                let current_points = ferreus_rbf_utils::select_mat_rows(points, current_indices);
                 let current_points_extents =
                     ferreus_rbf_utils::get_pointarray_extents(current_points.as_ref());
 
-                let axis_lengths: Vec<f64> = (0..dimensions as usize)
+                let axis_lengths: Vec<f64> = (0..dimensions)
                     .into_iter()
                     .map(|idx| {
                         current_points_extents[idx + dimensions] - current_points_extents[idx]
@@ -116,10 +116,10 @@ impl DDMTree {
                 let axis_column_vec: Vec<f64> = axis_column.iter().cloned().collect();
 
                 // Median split indices along that axis.
-                let sort_indices = ferreus_rbf_utils::argsort(&axis_column_vec.as_slice());
+                let sort_indices = ferreus_rbf_utils::argsort(axis_column_vec.as_slice());
                 let sorted_indices: Vec<usize> = sort_indices
                     .iter()
-                    .map(|idx| current_indices[*idx].clone())
+                    .map(|idx| current_indices[*idx])
                     .collect();
 
                 let mid_index = axis_column.nrows() / 2;
@@ -137,11 +137,11 @@ impl DDMTree {
 
                 let mut left_domain = Domain::new(left_indices.clone());
                 left_domain.extents = current_domain.extents.clone();
-                left_domain.extents[split_axis + dimensions] = mid_point[split_axis].clone();
+                left_domain.extents[split_axis + dimensions] = mid_point[split_axis];
 
                 let mut right_domain = Domain::new(right_indices.clone());
                 right_domain.extents = current_domain.extents.clone();
-                right_domain.extents[split_axis] = mid_point[split_axis].clone();
+                right_domain.extents[split_axis] = mid_point[split_axis];
 
                 let mut new_domains = vec![left_domain, right_domain];
 
@@ -188,8 +188,7 @@ impl DDMTree {
 
                 let num_domain_internal_points = internal_indices.len();
 
-                let internal_points =
-                    ferreus_rbf_utils::select_mat_rows(&points, &internal_indices);
+                let internal_points = ferreus_rbf_utils::select_mat_rows(points, &internal_indices);
 
                 let sample_size = num_domain_internal_points.min(num_coarse_points);
 
@@ -236,9 +235,7 @@ impl DDMTree {
                 // Get 'overlapping' points from neighbour internal points, rank by
                 // point-to-box distance, and take the closest `num_overlap_points`.
                 let neighbours =
-                    rtree.find_neighbours(&fine_level.leaf_domains[i].extents.as_slice(), i);
-
-                let num_neighbours = neighbours.len();
+                    rtree.find_neighbours(fine_level.leaf_domains[i].extents.as_slice(), i);
 
                 let num_overlap_points =
                     ((fine_level.leaf_domains[i].overlapping_point_indices.len() * 2) as f64
@@ -247,13 +244,12 @@ impl DDMTree {
 
                 let mut neighbour_indices: Vec<usize> = Vec::new();
 
-                for j in 0..num_neighbours {
-                    let neighbour_internal_indices: Vec<usize> = fine_level.leaf_domains
-                        [neighbours[j]]
+                for neighbour in neighbours {
+                    let neighbour_internal_indices: Vec<usize> = fine_level.leaf_domains[neighbour]
                         .overlapping_point_indices
                         .iter()
                         .zip(
-                            fine_level.leaf_domains[neighbours[j]]
+                            fine_level.leaf_domains[neighbour]
                                 .internal_points_mask
                                 .iter(),
                         )
@@ -275,8 +271,8 @@ impl DDMTree {
                             .enumerate()
                             .map(|(pidx, elem)| {
                                 let min_test = elem.min(box_max[pidx]);
-                                let max_test = min_test.max(box_min[pidx]);
-                                max_test
+
+                                min_test.max(box_min[pidx])
                             })
                             .collect();
 
@@ -312,7 +308,7 @@ impl DDMTree {
 
             // Factorise all leaves at this level.
             fine_level.leaf_domains.par_iter_mut().for_each(|domain| {
-                domain.factorise(points, interpolant_settings.clone(), false, &global_trend);
+                domain.factorise(points, interpolant_settings.clone(), false, global_trend);
             });
 
             levels.push(fine_level);
@@ -335,7 +331,7 @@ impl DDMTree {
             points,
             interpolant_settings.clone(),
             interpolant_settings.basis_size != 0,
-            &global_trend,
+            global_trend,
         );
 
         coarse_level.leaf_domains.push(coarse_domain);
@@ -352,7 +348,7 @@ fn get_centroid(points: &Mat<f64>) -> Vec<f64> {
 
     (0..ncols)
         .map(|col| {
-            let column: Vec<f64> = points.col(col).iter().map(|val| *val).collect();
+            let column: Vec<f64> = points.col(col).iter().copied().collect();
             column.into_iter().sum::<f64>() / nrows as f64
         })
         .collect()
@@ -472,7 +468,7 @@ mod tests {
         };
         let interpolant_settings = generate_interpolant_settings();
         let points = generate_points(80, dim);
-        let ddm = DDMTree::new(&points, &interpolant_settings, params.clone(), &None);
+        let ddm = DDMTree::new(&points, &interpolant_settings, params, &None);
 
         if let Some(lvl0) = ddm.levels.first() {
             for dom in &lvl0.leaf_domains {

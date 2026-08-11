@@ -1,24 +1,23 @@
-'''
+"""
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Stubs file for Python bindings of the interpolant_config module that enables typehints in IDE's.
 //
-// Created on: 15 Nov 2025     Author: Daniel Owen 
+// Created on: 15 Nov 2025     Author: Daniel Owen
 //
-// Copyright (c) 2025, Maptek Pty Ltd. All rights reserved. Licensed under the MIT License. 
+// Copyright (c) 2025, Maptek Pty Ltd. All rights reserved. Licensed under the MIT License.
 //
 /////////////////////////////////////////////////////////////////////////////////////////////
-'''
+"""
 
 from enum import Enum
-from typing import Optional
 
 class Drift(Enum):
     """
     The name of the polynomial order to add to the RBF system.
 
     The drift affects the interpolant away from data locations.
-    
+
     To ensure a unique solution to the RBF system of equations,
     some kernels have a minimum required polynomial that must
     be added, as shown below.
@@ -28,16 +27,16 @@ class Drift(Enum):
     | Linear          | Constant        | Constant        |
     | ThinPlateSpline | Linear          | Linear          |
     | Cubic           | Linear          | Linear          |
-    | Spheroidal      | None            | None            |    
+    | Spheroidal      | None            | None            |
     """
+
     None_ = 0
     Constant = 1
     Linear = 2
     Quadratic = 3
 
 class RBFKernelType(Enum):
-    """Implemented kernel functions.
-    """
+    """Implemented kernel functions."""
 
     Linear = 0
     r"""
@@ -153,8 +152,8 @@ class RBFKernelType(Enum):
     """
 
 class SpheroidalOrder(Enum):
-    """The implemented orders (alpha) for the spheroidal kernel.
-    """
+    """The implemented orders (alpha) for the spheroidal kernel."""
+
     Three = 3
     Five = 5
     Seven = 7
@@ -162,15 +161,14 @@ class SpheroidalOrder(Enum):
 
 class FittingAccuracyType(Enum):
     """Defines whether to use relative or absolute stopping criteria for the solver."""
-    
+
     Relative = 0
-    """The mismatch must be reduced by this factor compared to the initial mismatch."""    
-    
+    """The mismatch must be reduced by this factor compared to the initial mismatch."""
+
     Absolute = 1
     """The mismatch must be less than this fixed amount in the same units as the
         data values.
     """
-
 
 class FittingAccuracy:
     """
@@ -179,7 +177,7 @@ class FittingAccuracy:
     When solving an RBF system, the algorithm iteratively refines the coefficients
     until the predicted values at the data locations are sufficiently close to the
     given sample values. ``FittingAccuracy`` tells the solver *when to stop refining*.
-    
+
     Parameters
     ----------
     tolerance : float
@@ -189,7 +187,7 @@ class FittingAccuracy:
     tolerance_type : FittingAccuracyType
         Sets the type of stopping criteria.
 
-    """    
+    """
     def __init__(
         self,
         tolerance: float,
@@ -200,14 +198,14 @@ class InterpolantSettings:
     """
     Holds the configuration parameters for an RBF kernel.
 
-    The only required input is the ``RBFKernelType``.  
+    The only required input is the ``RBFKernelType``.
 
-    If no additional options are provided, defaults are applied: 
+    If no additional options are provided, defaults are applied:
 
-    - ``Drift`` is set to the minimum valid choice for the kernel.  
-    - For spheroidal kernels, `base_range` and `total_sill` default to `1.0`.  
+    - ``Drift`` is set to the minimum valid choice for the kernel.
+    - For spheroidal kernels, `base_range` and `total_sill` default to `1.0`.
     - The nugget defaults to `0.0` but may be specified for any kernel.
-    - `fitting_accuracy`: [`FittingAccuracy`][ferreus_rbf.interpolant_config.FittingAccuracy](tolerance=1E-6, tolerance_type=[`FittingAccuracyType.Relative`][ferreus_rbf.interpolant_config.FittingAccuracyType.Relative]) 
+    - `fitting_accuracy`: [`FittingAccuracy`][ferreus_rbf.interpolant_config.FittingAccuracy](tolerance=1E-6, tolerance_type=[`FittingAccuracyType.Relative`][ferreus_rbf.interpolant_config.FittingAccuracyType.Relative])
 
     Parameters
     ----------
@@ -225,27 +223,27 @@ class InterpolantSettings:
     base_range : float, optional
         Controls how quickly the interpolant decays with distance from each point. Smaller
         values restrict influence to a local neighborhood, while larger values produce
-        smoother, broader effects.  
-    
-        Typically chosen based on the spacing of your data.  
+        smoother, broader effects.
+
+        Typically chosen based on the spacing of your data.
         Only used in spheroidal kernels.
     total_sill : float, optional
         Sets the overall strength of influence each point exerts. Higher values give
         points more weight and stronger local effects. Lower values yield smoother,
-        less pronounced variation.  
-    
-        Works in combination with `base_range` and the spheroidal_order.  
+        less pronounced variation.
+
+        Works in combination with `base_range` and the spheroidal_order.
         Only used in spheroidal kernels.
     fitting_accuracy : FittingAccuracy, optional
-        Desired fitting accuracy and tolerance criteria.        
+        Desired fitting accuracy and tolerance criteria.
     """
     def __init__(
         self,
         kernel_type: RBFKernelType,
-        spheroidal_order: Optional[SpheroidalOrder] = None,
-        drift: Optional[Drift] = None,
-        nugget: Optional[float] = None,
-        base_range: Optional[float] = None,
-        total_sill: Optional[float] = None,
-        fitting_accuracy: Optional[FittingAccuracy] = None,
+        spheroidal_order: SpheroidalOrder | None = None,
+        drift: Drift | None = None,
+        nugget: float | None = None,
+        base_range: float | None = None,
+        total_sill: float | None = None,
+        fitting_accuracy: FittingAccuracy | None = None,
     ) -> None: ...

@@ -1,23 +1,25 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from ferreus_rbf import RBFInterpolator
 from ferreus_rbf.interpolant_config import (
-    RBFKernelType,
-    InterpolantSettings,
-    FittingAccuracyType,
-    FittingAccuracy,
-    SpheroidalOrder,
     Drift,
+    FittingAccuracy,
+    FittingAccuracyType,
+    InterpolantSettings,
+    RBFKernelType,
+    SpheroidalOrder,
 )
 from ferreus_rbf.progress import (
-    Progress,
-    SolverIteration,
-    SurfacingProgress,
     DuplicatesRemoved,
     Message,
+    Progress,
     ProgressEvent,
+    SolverIteration,
+    SurfacingProgress,
 )
+
+from ferreus_rbf import RBFInterpolator
 
 
 def on_progress(event: ProgressEvent) -> None:
@@ -75,9 +77,12 @@ fitting_accuracy = FittingAccuracy(0.01, FittingAccuracyType.Absolute)
 
 # Initialise an InterpolantSettings instance
 interpolant_settings = InterpolantSettings(
-    kernel_type, fitting_accuracy=fitting_accuracy,
-    spheroidal_order=order, base_range=base_range, total_sill=sill,
-    drift=drift
+    kernel_type,
+    fitting_accuracy=fitting_accuracy,
+    spheroidal_order=order,
+    base_range=base_range,
+    total_sill=sill,
+    drift=drift,
 )
 
 # Create a callback to receive progress updates from the RBFInterpolator

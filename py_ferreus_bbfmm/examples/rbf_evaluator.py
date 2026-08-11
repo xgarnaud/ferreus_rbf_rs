@@ -1,5 +1,12 @@
 import numpy as np
-from ferreus_bbfmm import FmmTree, FmmKernelType, KernelParams, FmmParams, M2LCompressionType
+
+from ferreus_bbfmm import (
+    FmmKernelType,
+    FmmParams,
+    FmmTree,
+    KernelParams,
+    M2LCompressionType,
+)
 
 # Choose a kernel
 kernel_params = KernelParams(FmmKernelType.LinearRbf)
@@ -30,7 +37,7 @@ extents = np.array([-2.0, -2.0, -2.0, 2.0, 2.0, 2.0])
 params = FmmParams(
     256,
     M2LCompressionType.ACA,
-    10**(-interpolation_order),
+    10 ** (-interpolation_order),
     1024,
 )
 

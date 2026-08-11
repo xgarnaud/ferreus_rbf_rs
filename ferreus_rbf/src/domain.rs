@@ -17,11 +17,11 @@
 //! right-hand side to RBF (and optional polynomial) coefficients.
 //!
 //! # References
-//! 1.  R. K. Beatson, W. A. Light, and S. Billings. Fast solution of the radial basis
-//!     function interpolation equations: domain decomposition methods. SIAM J. Sci.
-//!     Comput., 22(5):1717–1740 (electronic), 2000.
+//! 1. R. K. Beatson, W. A. Light, and S. Billings. Fast solution of the radial basis
+//!    function interpolation equations: domain decomposition methods. SIAM J. Sci.
+//!    Comput., 22(5):1717–1740 (electronic), 2000.
 //! 2. J. B. Cherrie. Fast Evaluation of Radial Basis Functions: Theory and Application.
-//!     PhD thesis, University of Canterbury, 2000.
+//!    PhD thesis, University of Canterbury, 2000.
 
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -43,8 +43,6 @@ use faer::{
     },
     reborrow::*,
 };
-
-use ferreus_rbf_utils;
 
 pub enum DomainSolver {
     Llt(LltRfp<f64>),
@@ -159,7 +157,7 @@ impl Domain {
     ) {
         let mut lhs: Mat<f64>;
         let domain_points =
-            ferreus_rbf_utils::select_mat_rows(&source_points, &self.overlapping_point_indices);
+            ferreus_rbf_utils::select_mat_rows(source_points, &self.overlapping_point_indices);
 
         if interpolant_settings.basis_size != 0 {
             // Scale the domain points to the [-1, 1]^d hypercube for monomial evaluation.
@@ -201,7 +199,7 @@ impl Domain {
                 .count();
 
             // Pick the k pivoted monomial columns, independent on this node set.
-            let mut unisolvent_columns: Vec<usize> = piv_fwd[..rank].iter().cloned().collect();
+            let mut unisolvent_columns: Vec<usize> = piv_fwd[..rank].to_vec();
             unisolvent_columns.sort();
 
             // Reduced full rank monomial matrix.
@@ -219,7 +217,7 @@ impl Domain {
             let qrr = full_rank_monomials.transpose().col_piv_qr();
             let (piv_fwd, _) = qrr.P().arrays();
 
-            let mut special_point_indices: Vec<usize> = piv_fwd[..rank].iter().cloned().collect();
+            let mut special_point_indices: Vec<usize> = piv_fwd[..rank].to_vec();
             special_point_indices.sort();
 
             // Extract the special point monomials.
@@ -232,13 +230,7 @@ impl Domain {
 
             let non_special_point_indices: Vec<usize> = (0..domain_points.nrows())
                 .into_iter()
-                .filter_map(|local_idx| {
-                    if !special_points_set.contains(&local_idx) {
-                        Some(local_idx)
-                    } else {
-                        None
-                    }
-                })
+                .filter(|local_idx| !special_points_set.contains(local_idx))
                 .collect();
 
             let non_special_point_monomials = ferreus_rbf_utils::select_mat_rows(
@@ -403,15 +395,14 @@ impl Domain {
                 *source_values.get(self.overlapping_point_indices[i], j)
             });
 
-        if self.q_matrix_top.is_some() {
+        if let Some(q_matrix_top) = &self.q_matrix_top {
             // Polynomial case.
             num_special_points = self.special_point_indices.as_ref().unwrap().len();
             num_points = self.overlapping_point_indices.len() - num_special_points;
 
             // Augment rhs: rhs = Q^T d_special + d_non_special
-            rhs = self.q_matrix_top.as_ref().unwrap().transpose()
-                * &domain_values.subrows(0, num_special_points)
-                + &domain_values.subrows(num_special_points, num_points);
+            rhs = q_matrix_top.transpose() * domain_values.subrows(0, num_special_points)
+                + domain_values.subrows(num_special_points, num_points);
         } else {
             // Standard case.
             rhs = domain_values.clone();
@@ -424,9 +415,9 @@ impl Domain {
         // Solve system.
         let gamma = self.solver.solve(&rhs);
 
-        if self.q_matrix_top.is_some() {
+        if let Some(q_matrix_top) = &self.q_matrix_top {
             // Set lambda = Q * gamma
-            let coefficients_top = self.q_matrix_top.as_ref().unwrap() * &gamma;
+            let coefficients_top = q_matrix_top * &gamma;
             point_coefficients
                 .submatrix_mut(0, 0, num_special_points, rhs.ncols())
                 .copy_from(coefficients_top);
@@ -494,7 +485,7 @@ mod tests {
     }
 
     fn generate_point_indices(num_points: usize) -> Vec<usize> {
-        (0..num_points as usize).into_iter().collect()
+        (0..num_points).into_iter().collect()
     }
 
     fn naive_rbf_solve(
@@ -515,9 +506,9 @@ mod tests {
         );
 
         if interpolant_settings.basis_size != 0 {
-            let num_poly = interpolant_settings.basis_size as usize;
+            let num_poly = interpolant_settings.basis_size;
             let (translation_factor, scale_factor) =
-                common::get_cheb_cube_scaling_factors(&source_points);
+                common::get_cheb_cube_scaling_factors(source_points);
 
             let poly_matrix = polynomials::evaluate_monomials(
                 source_points.as_ref(),
@@ -570,7 +561,7 @@ mod tests {
 
         if interpolant_settings.basis_size != 0 {
             let (translation_factor, scale_factor) =
-                common::get_cheb_cube_scaling_factors(&source_points);
+                common::get_cheb_cube_scaling_factors(source_points);
 
             let scaled_monomials = polynomials::evaluate_monomials(
                 target_points.as_ref(),
@@ -598,7 +589,7 @@ mod tests {
                 .count();
 
             // Pick the k pivoted monomial columns, independent on this node set.
-            let mut unisolvent_columns: Vec<usize> = piv_fwd[..rank].iter().cloned().collect();
+            let mut unisolvent_columns: Vec<usize> = piv_fwd[..rank].to_vec();
             unisolvent_columns.sort();
 
             // Reduced full rank monomial matrix.
@@ -630,7 +621,7 @@ mod tests {
             vec![true; naive_domain.overlapping_point_indices.len()];
 
         naive_domain.factorise(
-            &points,
+            points,
             interpolant_settings.clone(),
             interpolant_settings.basis_size != 0,
             &None,
@@ -666,11 +657,11 @@ mod tests {
             ks
         });
 
-        let domain_coefficients = solve_domain(&points, &values, interpolant_settings.clone());
+        let domain_coefficients = solve_domain(points, values, interpolant_settings.clone());
 
         let evaluated_values_at_source = naive_rbf_evaluate(
-            &points,
-            &points,
+            points,
+            points,
             interpolant_settings.clone(),
             &domain_coefficients,
         );

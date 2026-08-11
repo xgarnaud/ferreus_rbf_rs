@@ -190,18 +190,24 @@ impl From<BoundaryClosure> for RbfBoundaryClosure {
     }
 }
 
-#[pyclass(eq, eq_int)]
+#[pyclass(eq)]
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum Solvers {
-    DDM,
-    FGMRES,
+    DDM(usize),
+    FGMRES(usize, usize),
 }
 
 impl From<Solvers> for config::Solvers {
     fn from(s: Solvers) -> config::Solvers {
         match s {
-            Solvers::DDM => config::Solvers::DDM,
-            Solvers::FGMRES => config::Solvers::FGMRES,
+            Solvers::DDM(max_iterations) => config::Solvers::DDM { max_iterations },
+            Solvers::FGMRES(max_outer_iterations, max_inner_iterations) => {
+                config::Solvers::FGMRES {
+                    max_outer_iterations,
+                    max_inner_iterations,
+                }
+            }
         }
     }
 }
@@ -234,6 +240,7 @@ impl DDMParams {
 
 #[pyclass(eq, eq_int)]
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(clippy::upper_case_acronyms)]
 pub enum FmmCompressionType {
     #[pyo3(name = "None_")]
     None,
@@ -534,17 +541,9 @@ impl From<FittingAccuracyType> for interpolant_config::FittingAccuracyType {
 }
 
 #[pyclass]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct FittingAccuracy {
     inner: interpolant_config::FittingAccuracy,
-}
-
-impl Default for FittingAccuracy {
-    fn default() -> Self {
-        Self {
-            inner: interpolant_config::FittingAccuracy::default(),
-        }
-    }
 }
 
 #[pymethods]
@@ -589,7 +588,7 @@ impl Params {
     ) -> Self {
         Self {
             inner: config::Params {
-                solver_type: solver_type.unwrap_or(Solvers::FGMRES).into(),
+                solver_type: solver_type.map_or(config::Solvers::default(), |s| s.into()),
                 ddm_params: {
                     match ddm_params.is_some() {
                         true => ddm_params.unwrap().inner,
@@ -667,7 +666,7 @@ impl From<GlobalTrend> for ferreus_rbf::GlobalTrend {
 }
 impl From<&GlobalTrend> for ferreus_rbf::GlobalTrend {
     fn from(pygt: &GlobalTrend) -> Self {
-        pygt.inner.clone()
+        pygt.inner
     }
 }
 
@@ -918,14 +917,14 @@ impl RBFInterpolator {
     #[getter]
     fn source_points<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray2<f64>> {
         let points = &self.inner.points;
-        mat_to_numpy(&points, py)
+        mat_to_numpy(points, py)
     }
 
     /// Access the stored source values from the interpolator
     #[getter]
     fn source_values<'py>(&self, py: Python<'py>) -> Py<PyAny> {
         let values = &self.inner.point_values;
-        mat_to_numpy_scalar_or_matrix(&values, py)
+        mat_to_numpy_scalar_or_matrix(values, py)
     }
 }
 
@@ -991,6 +990,7 @@ fn model_error_to_py(err: ferreus_rbf::ModelIOError) -> PyErr {
     boundary_closure=BoundaryClosure::None,
     progress_callback=None
 ))]
+#[allow(clippy::too_many_arguments)]
 pub fn build_isosurface<'py>(
     py: Python<'py>,
     seed_points: PyReadonlyArray2<'_, f64>,
@@ -1025,7 +1025,7 @@ pub fn build_isosurface<'py>(
             let targets_np = mat_to_numpy(&targets_owned, py);
 
             let result_obj: Py<PyAny> = match isosurface_fn.call1(py, (targets_np,)) {
-                Ok(obj) => obj.into(),
+                Ok(obj) => obj,
                 Err(err) => {
                     err.print(py);
                     panic!("surface_fn callback raised an exception")
@@ -1054,7 +1054,7 @@ pub fn build_isosurface<'py>(
                 let targets_np = matref_to_numpy(targets, py);
 
                 let result_obj: Py<PyAny> = match gradient_fn.call1(py, (targets_np,)) {
-                    Ok(obj) => obj.into(),
+                    Ok(obj) => obj,
                     Err(err) => {
                         err.print(py);
                         panic!("gradient_fn callback raised an exception")
@@ -1122,6 +1122,7 @@ pub fn build_isosurface<'py>(
     boundary_closure=BoundaryClosure::None,
     progress_callback=None
 ))]
+#[allow(clippy::too_many_arguments)]
 pub fn build_isosurfaces<'py>(
     py: Python<'py>,
     seed_points: PyReadonlyArray2<'_, f64>,
@@ -1156,7 +1157,7 @@ pub fn build_isosurfaces<'py>(
             let targets_np = mat_to_numpy(&targets_owned, py);
 
             let result_obj: Py<PyAny> = match isosurface_fn.call1(py, (targets_np,)) {
-                Ok(obj) => obj.into(),
+                Ok(obj) => obj,
                 Err(err) => {
                     err.print(py);
                     panic!("surface_fn callback raised an exception")
@@ -1185,7 +1186,7 @@ pub fn build_isosurfaces<'py>(
                 let targets_np = matref_to_numpy(targets, py);
 
                 let result_obj: Py<PyAny> = match gradient_fn.call1(py, (targets_np,)) {
-                    Ok(obj) => obj.into(),
+                    Ok(obj) => obj,
                     Err(err) => {
                         err.print(py);
                         panic!("gradient_fn callback raised an exception")

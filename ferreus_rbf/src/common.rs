@@ -11,7 +11,6 @@
 use core::f64;
 use csv::{ReaderBuilder, Writer};
 use faer::{Mat, MatRef};
-use ferreus_rbf_utils;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use std::error::Error;
@@ -55,43 +54,37 @@ pub fn generate_random_points(n: usize, d: usize, seed: Option<u64>) -> Mat<f64>
         false => StdRng::from_os_rng(),
     };
 
-    let source_points = Mat::from_fn(n, d, |_, _| rng.random_range(0.0..1.0));
-
-    source_points
+    Mat::from_fn(n, d, |_, _| rng.random_range(0.0..1.0))
 }
 
 /// Pads and snaps the extents vector (2D or 3D) to the nearest multiple of resolution,
 /// then expands the bounds by one resolution unit and the given buffer.
 ///
 /// # Arguments
-/// * `extents` - A `Vec<f64>` with either 4 elements (2D) or 6 elements (3D)
+/// * `initial_extents` - A slice (`&[f64]`) with either 4 elements (2D) or 6 elements (3D)
 /// * `resolution` - Grid resolution
 /// * `buffer` - Additional padding added to each side after snapping
 ///
 /// # Returns
-/// A new `Vec<f64>` with padded and snapped extents
-pub fn pad_and_snap_extents(
-    initial_extents: &Vec<f64>,
-    resolution: &f64,
-    buffer: &f64,
-) -> Vec<f64> {
-    let mut extents = initial_extents.clone();
+/// A new owned `Vec<f64>` with padded and snapped extents
+pub fn pad_and_snap_extents(initial_extents: &[f64], resolution: &f64, buffer: &f64) -> Vec<f64> {
+    let mut extents = initial_extents.to_vec();
     match extents.len() {
         4 => {
             // 2D: [xmin, ymin, xmax, ymax]
-            extents[0] = round_down(&extents[0], &resolution) - resolution - buffer;
-            extents[1] = round_down(&extents[1], &resolution) - resolution - buffer;
-            extents[2] = round_up(&extents[2], &resolution) + resolution + buffer;
-            extents[3] = round_up(&extents[3], &resolution) + resolution + buffer;
+            extents[0] = round_down(&extents[0], resolution) - resolution - buffer;
+            extents[1] = round_down(&extents[1], resolution) - resolution - buffer;
+            extents[2] = round_up(&extents[2], resolution) + resolution + buffer;
+            extents[3] = round_up(&extents[3], resolution) + resolution + buffer;
         }
         6 => {
             // 3D: [xmin, ymin, zmin, xmax, ymax, zmax]
-            extents[0] = round_down(&extents[0], &resolution) - resolution - buffer;
-            extents[1] = round_down(&extents[1], &resolution) - resolution - buffer;
-            extents[2] = round_down(&extents[2], &resolution) - resolution - buffer;
-            extents[3] = round_up(&extents[3], &resolution) + resolution + buffer;
-            extents[4] = round_up(&extents[4], &resolution) + resolution + buffer;
-            extents[5] = round_up(&extents[5], &resolution) + resolution + buffer;
+            extents[0] = round_down(&extents[0], resolution) - resolution - buffer;
+            extents[1] = round_down(&extents[1], resolution) - resolution - buffer;
+            extents[2] = round_down(&extents[2], resolution) - resolution - buffer;
+            extents[3] = round_up(&extents[3], resolution) + resolution + buffer;
+            extents[4] = round_up(&extents[4], resolution) + resolution + buffer;
+            extents[5] = round_up(&extents[5], resolution) + resolution + buffer;
         }
         _ => panic!(
             "Expected extents of length 4 (2D) or 6 (3D), got {}",
@@ -253,7 +246,7 @@ pub fn farthest_point_sampling(
     let mut is_selected = vec![false; num_points];
     let mut min_dists = vec![f64::INFINITY; num_points];
 
-    selected_points.push(seed_index.clone());
+    selected_points.push(*seed_index);
     is_selected[*seed_index] = true;
 
     for _ in 1..*num_wanted_points {

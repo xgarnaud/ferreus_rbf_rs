@@ -1,19 +1,21 @@
-'''
+"""
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Stubs file for Python bindings of the isosurfacing module that enables typehints in IDE's.
 //
-// Created on: 07 April 2026     Author: Daniel Owen 
+// Created on: 07 April 2026     Author: Daniel Owen
 //
-// Copyright (c) 2025, Maptek Pty Ltd. All rights reserved. Licensed under the MIT License. 
+// Copyright (c) 2025, Maptek Pty Ltd. All rights reserved. Licensed under the MIT License.
 //
 /////////////////////////////////////////////////////////////////////////////////////////////
-'''
+"""
 
-from typing import Callable, Optional
+from collections.abc import Callable
 from enum import Enum
+
 import numpy as np
 import numpy.typing as npt
+
 from ferreus_rbf.progress import Progress
 
 class ClusterMethod(Enum):
@@ -40,8 +42,7 @@ class BoundaryClosure(Enum):
 class Mesh:
     """Triangle mesh returned by isosurface extraction."""
 
-    @staticmethod
-    def save_obj(self, path: str, name: str) -> None: 
+    def save_obj(self, path: str, name: str) -> None:
         """Save this mesh to a Wavefront OBJ file.
 
         Parameters
@@ -51,7 +52,6 @@ class Mesh:
         name : str
             Object name for the mesh.
         """
-        ...
 
     @property
     def vertices(self) -> npt.NDArray[np.float64]:
@@ -62,7 +62,6 @@ class Mesh:
         npt.NDArray[np.float64]
             Array of the vertices.
         """
-        ...
 
     @property
     def facets(self) -> npt.NDArray[np.uintp]:
@@ -73,8 +72,6 @@ class Mesh:
         npt.NDArray[np.uintp]
             Array of triangles.
         """
-        ...
-
 
 def build_isosurface(
     seed_points: npt.NDArray[np.float64],
@@ -83,15 +80,14 @@ def build_isosurface(
     isovalue: float,
     isosurface_fn: Callable[[npt.NDArray[np.float64]], npt.NDArray[np.float64]],
     *,
-    gradient_fn: Optional[
-        Callable[
-            [npt.NDArray[np.float64]],
-            tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
-        ]
-    ] = None,
-    cluster_method: Optional[ClusterMethod] = ClusterMethod.CurvatureWeighted,
-    boundary_closure: Optional[BoundaryClosure] = BoundaryClosure.None_,
-    progress_callback: Optional[Progress] = None,
+    gradient_fn: Callable[
+        [npt.NDArray[np.float64]],
+        tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
+    ]
+    | None = None,
+    cluster_method: ClusterMethod | None = ClusterMethod.CurvatureWeighted,
+    boundary_closure: BoundaryClosure | None = BoundaryClosure.None_,
+    progress_callback: Progress | None = None,
 ) -> Mesh:
     """Extract an isosurface using regularised marching tetrahedra.
 
@@ -101,7 +97,7 @@ def build_isosurface(
         Numpy array of points of shape (N, 3), where N is the number of seed points, to seed the
         isosurface extraction. The algorithm is most efficient when these points are on, or close
         to, the surface to be extacted, as it reduces the number of cells that need to be evaluated
-        in order to extract the surface.    
+        in order to extract the surface.
     extents : npt.NDArray[np.float64]
         AABB extents as a 1D numpy array in order of [minx, miny, minz, maxx, maxy, maxz].
     resolution : float
@@ -131,7 +127,6 @@ def build_isosurface(
     Mesh
         Extracted triangle mesh.
     """
-    ...
 
 def build_isosurfaces(
     seed_points: npt.NDArray[np.float64],
@@ -140,15 +135,14 @@ def build_isosurfaces(
     isovalues: list[float],
     isosurface_fn: Callable[[npt.NDArray[np.float64]], npt.NDArray[np.float64]],
     *,
-    gradient_fn: Optional[
-        Callable[
-            [npt.NDArray[np.float64]],
-            tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
-        ]
-    ] = None,
-    cluster_method: Optional[ClusterMethod] = ClusterMethod.CurvatureWeighted,
-    boundary_closure: Optional[BoundaryClosure] = BoundaryClosure.None_,
-    progress_callback: Optional[Progress] = None,
+    gradient_fn: Callable[
+        [npt.NDArray[np.float64]],
+        tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
+    ]
+    | None = None,
+    cluster_method: ClusterMethod | None = ClusterMethod.CurvatureWeighted,
+    boundary_closure: BoundaryClosure | None = BoundaryClosure.None_,
+    progress_callback: Progress | None = None,
 ) -> list[Mesh]:
     """Convenience wrapper for [`build_isosurface`][ferreus_rbf.isosurfacing.build_isosurface] that
     can extract multiple meshes from a list of isovalues at once.
@@ -159,7 +153,7 @@ def build_isosurfaces(
         Numpy array of points of shape (N, 3), where N is the number of seed points, to seed the
         isosurface extraction. The algorithm is most efficient when these points are on, or close
         to, the surface to be extacted, as it reduces the number of cells that need to be evaluated
-        in order to extract the surface.    
+        in order to extract the surface.
     extents : npt.NDArray[np.float64]
         AABB extents as a 1D numpy array in order of [minx, miny, minz, maxx, maxy, maxz].
     resolution : float
@@ -189,4 +183,3 @@ def build_isosurfaces(
     list[Mesh]
         Extracted triangle meshes for each isovalue.
     """
-    ...    

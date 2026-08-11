@@ -50,10 +50,12 @@ pip install ferreus_rmt
 import numpy as np
 from ferreus_rmt import build_isosurface
 
+
 # Define the implicit function for a sphere.
 def surface_fn(points: np.ndarray) -> np.ndarray:
     radius = 1.0
     return np.linalg.norm(points, axis=1) - radius
+
 
 # Define the axis-aligned bounding box extents to extract the isosurface within:
 # [xmin, ymin, zmin, xmax, ymax, zmax].

@@ -23,7 +23,7 @@ use ferreus_rbf::{
 };
 
 let params = Params::builder(RBFKernelType::Linear).build();
-assert_eq!(params.solver_type, ferreus_rbf::config::Solvers::FGMRES);
+assert_eq!(params.solver_type, ferreus_rbf::config::Solvers::FGMRES{max_outer_iterations: 20, max_inner_iterations: 5});
 ```
 
 ```rust
@@ -33,13 +33,13 @@ use ferreus_rbf::{
 };
 
 let params = Params::builder(RBFKernelType::Linear)
-    .solver_type(Solvers::DDM)
+    .solver_type(Solvers::DDM{max_iterations:100})
     .naive_solve_threshold(2048)
     .test_unique(false)
     .build();
 
 assert_eq!(
     (params.solver_type, params.naive_solve_threshold, params.test_unique),
-    (Solvers::DDM, 2048, false)
+    (Solvers::DDM{max_iterations:100}, 2048, false)
 );
 ```

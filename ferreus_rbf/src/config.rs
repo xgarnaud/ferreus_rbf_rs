@@ -140,7 +140,7 @@ impl ParamsBuilder {
     /// Creates a new builder with defaults appropriate for the given kernel type.
     fn new(kernel_type: RBFKernelType) -> Self {
         Self {
-            solver_type: Solvers::FGMRES,
+            solver_type: Solvers::default(),
             ddm_params: DDMParams::default(),
             fmm_params: FmmParams::new_defaults(kernel_type),
             naive_solve_threshold: 4096,
@@ -256,14 +256,20 @@ impl FmmParams {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum Solvers {
     /// Domain Decomposition solver.
-    DDM,
+    DDM { max_iterations: usize },
 
     /// Flexible generalised minimal residual method (FGMRES) solver.
-    FGMRES,
+    FGMRES {
+        max_outer_iterations: usize,
+        max_inner_iterations: usize,
+    },
 }
 
 impl Default for Solvers {
     fn default() -> Self {
-        Solvers::FGMRES
+        Solvers::FGMRES {
+            max_outer_iterations: 20,
+            max_inner_iterations: 5,
+        }
     }
 }

@@ -21,6 +21,10 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
+dependencies = [
+    "numpy >= 1.16.0",
+]
+
 [tool.maturin]
 profile = "release"
 features = ["pyo3/extension-module"]

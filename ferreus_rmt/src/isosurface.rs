@@ -55,18 +55,10 @@ pub enum ClusterMethod {
 }
 
 /// Per-lattice-sample extraction state.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 struct SamplePoint {
     /// Bit mask of owned lattice edges containing an isosurface intersection.
     intersections: u16,
-}
-
-impl Default for SamplePoint {
-    fn default() -> Self {
-        Self {
-            intersections: 0u16,
-        }
-    }
 }
 
 /// Candidate vertex generated from one topology-compatible cluster of edge intersections.
@@ -91,6 +83,7 @@ pub fn get_edge_points<const E: usize>(ijk: &[i64; 3]) -> [[i64; 3]; E] {
     corners[0][1] = ijk[1];
     corners[0][2] = ijk[2];
 
+    #[allow(clippy::needless_range_loop)]
     for d in 0..(E - 1) {
         let eds = EDGE_DELTAS[d];
         let corner_idx = d + 1;
@@ -356,6 +349,8 @@ fn collect_invalid_topology_cluster_owners(
 }
 
 /// Replaces invalid clustered vertices with their original per-edge intersection vertices.
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)]
 fn rollback_cluster_owners(
     bad_owners: HashSet<[i64; 3]>,
     owner_cluster_vertices: &mut HashMap<[i64; 3], Vec<usize>>,
@@ -423,6 +418,8 @@ fn emit_message(progress_callback: Option<&dyn ProgressSink>, message: impl Into
 
 /// Convenience wrapper for [`build_isosurface`]` that can extract multiple meshes from a vec of
 /// isovalues at once.
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)]
 pub fn build_isosurfaces<F>(
     seed_points: MatRef<f64>,
     extents: &[f64],
@@ -486,6 +483,8 @@ where
 /// is used for seed projection; otherwise gradients are estimated by central differences. The
 /// selected [`ClusterMethod`] controls how topology-compatible edge intersections are combined
 /// into mesh vertices. [`BoundaryClosure`] controls whether clipped AABB boundaries are closed.
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)]
 pub fn build_isosurface<F>(
     seed_points: MatRef<f64>,
     extents: &[f64],
@@ -558,7 +557,7 @@ where
         // it's far more efficient to collect all the unnevaluated sample points in each wavefront
         // iteration and perform a batch evaluation.
         for cell in &wavefront {
-            sample_points.entry(*cell).or_insert(SamplePoint::default());
+            sample_points.entry(*cell).or_default();
             let corners = get_edge_points::<8>(cell);
             for corner in corners {
                 if !evaluated.contains_key(&corner) {
@@ -578,7 +577,7 @@ where
         }
 
         for cell in &wavefront {
-            let corners = get_edge_points::<8>(&cell);
+            let corners = get_edge_points::<8>(cell);
             let corner_vals: Vec<f64> =
                 corners.iter().map(|c| *evaluated.get(c).unwrap()).collect();
             let s0 = corner_vals[0];
@@ -603,10 +602,7 @@ where
                 if t < 0.5 {
                     sample_points.get_mut(cell).unwrap().intersections |= 1u16 << eid;
                 } else {
-                    sample_points
-                        .entry(nbr_key)
-                        .or_insert(SamplePoint::default())
-                        .intersections |= 1u16 << rev;
+                    sample_points.entry(nbr_key).or_default().intersections |= 1u16 << rev;
                 }
 
                 cell_has_intersections = true;
@@ -658,7 +654,7 @@ where
                 }
 
                 seen_cells.insert(nbr);
-                sample_points.entry(nbr).or_insert(SamplePoint::default());
+                sample_points.entry(nbr).or_default();
                 next_wavefront.insert(nbr);
             }
         }
@@ -753,7 +749,7 @@ where
                 }
             }
 
-            if pts.len() == 0 {
+            if pts.is_empty() {
                 continue;
             }
 

@@ -56,13 +56,13 @@ impl<T: ComplexField> LltRfp<T> {
         let mut AR = to_rfp(&A, &side);
         // Compute the in-place Cholesky factorisation of the RFP matrix.
         cholesky_rfp_factor(&mut AR, side)?;
-        Ok(Self { L: AR, side: side })
+        Ok(Self { L: AR, side })
     }
 
     pub fn solve(&self, rhs: &Mat<T>) -> Mat<T> {
         // Solve A @ X = B in RFP format.
-        let X = cholesky_rfp_solve(&self.L, &rhs, &self.side);
-        X
+
+        cholesky_rfp_solve(&self.L, rhs, &self.side)
     }
 }
 
@@ -90,9 +90,9 @@ fn get_rfp_block_submatrix_params(
 
     match side {
         Side::Lower => SubmatrixParams {
-            a11: (0 + row_offset, 0, *n1, *n1),
+            a11: (row_offset, 0, *n1, *n1),
             a21_or_a12: (*n1 + row_offset, 0, *n2, *n1),
-            a22: (0, 0 + col_offset, *n2, *n2),
+            a22: (0, col_offset, *n2, *n2),
         },
         Side::Upper => SubmatrixParams {
             a11: (n2 + 1, 0, *n2, *n2),
@@ -135,14 +135,14 @@ fn to_rfp<T: ComplexField>(A: &MatRef<T>, side: &Side) -> Mat<T> {
         false => N,
     };
 
-    let n1 = (N + 1) / 2;
+    let n1 = N.div_ceil(2);
     let n2 = N - n1;
     let mut AR = Mat::<T>::zeros(LDAR, n1);
 
     // Set helper structs to define 2-by-2 block matrices
     // based on lower/upper and odd/even cases.
-    let from_subs = get_a_block_submatrix_params(&side, &n1, &n2);
-    let to_subs = get_rfp_block_submatrix_params(&side, &even, &n1, &n2);
+    let from_subs = get_a_block_submatrix_params(side, &n1, &n2);
+    let to_subs = get_rfp_block_submatrix_params(side, &even, &n1, &n2);
 
     let A11 = A.submatrix(
         from_subs.a11.0,
@@ -368,7 +368,7 @@ fn cholesky_rfp_solve<T: ComplexField>(AR: &Mat<T>, B: &Mat<T>, side: &Side) -> 
 
     let mut X = B.clone();
 
-    let subs = get_rfp_block_submatrix_params(&side, &even, &n1, &n2);
+    let subs = get_rfp_block_submatrix_params(side, &even, &n1, &n2);
 
     let k = match side {
         Side::Lower => n1,
@@ -473,7 +473,6 @@ fn cholesky_rfp_solve<T: ComplexField>(AR: &Mat<T>, B: &Mat<T>, side: &Side) -> 
 pub fn pack_tril_colmajor<T: ComplexField>(a: MatRef<'_, T>) -> Mat<T> {
     let (m, n) = a.shape();
     assert!(m == n, "square matrix required");
-    let n = n;
     let n_tp = n * (n + 1) / 2;
 
     let mut out = Mat::zeros(n_tp, 1);
@@ -660,7 +659,7 @@ mod tests {
             let (ldar, n1) = ar.shape();
             assert_eq!(n % 2, 0);
             assert_eq!(ldar, n + 1, "LDAR for even n should be N+1");
-            assert_eq!(n1, (n + 1) / 2);
+            assert_eq!(n1, n.div_ceil(2));
         }
         // odd
         for n in [1usize, 3, 5, 7, 9, 11] {
@@ -669,7 +668,7 @@ mod tests {
             let (ldar, n1) = ar.shape();
             assert_eq!(n % 2, 1);
             assert_eq!(ldar, n, "LDAR for odd n should be N");
-            assert_eq!(n1, (n + 1) / 2);
+            assert_eq!(n1, n.div_ceil(2));
         }
     }
 

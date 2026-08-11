@@ -261,7 +261,7 @@ impl GlobalTrendTransform {
         let inv_affine_transform = lu.inverse();
 
         GlobalTrendTransform {
-            affine_transform: affine_transform,
+            affine_transform,
             inverse_transform: inv_affine_transform,
         }
     }

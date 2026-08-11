@@ -47,15 +47,15 @@ where
 
     if coarse_idx > 0 {
         // Iterate from the finest level to the second coarsest level.
-        for i in (0..coarse_idx).into_iter() {
+        for i in 0..coarse_idx {
             let level_point_indices = &ddm_tree.levels[i].point_indices;
 
             sl += solve_fine_level(
                 rg - matvec(&sl.as_ref(), Some(level_point_indices)),
                 ddm_tree,
                 &i,
-                &interpolant_settings,
-                &ortho_poly_matrix,
+                interpolant_settings,
+                ortho_poly_matrix,
             );
 
             // Use the coarse level as a smoother, but only return the poly 'tail'
@@ -113,7 +113,7 @@ fn solve_fine_level(
         // If there's polynomials involved we need to orthogonalise the weights
         // from the subdomain solves against the global polynomial basis.
         let num_points = s1.nrows() - interpolant_settings.basis_size;
-        orthogonalise(&mut s1.subrows_mut(0, num_points), &ortho_poly_matrix);
+        orthogonalise(&mut s1.subrows_mut(0, num_points), ortho_poly_matrix);
     }
 
     s1

@@ -11,13 +11,12 @@
 """
 
 from enum import Enum
-from typing import Optional
+
 import numpy as np
 import numpy.typing as npt
 
 class FmmKernelType(Enum):
-    """Implemented kernel functions.
-    """
+    """Implemented kernel functions."""
 
     Laplacian = 0
     r"""
@@ -154,8 +153,8 @@ class FmmKernelType(Enum):
     """
 
 class SpheroidalOrder(Enum):
-    """The implemented orders (alpha) for the spheroidal kernel.
-    """
+    """The implemented orders (alpha) for the spheroidal kernel."""
+
     Three = 3
     Five = 5
     Seven = 7
@@ -165,7 +164,8 @@ class M2LCompressionType(Enum):
     """
     Enum for the available compression methods for the M2L operators.
 
-    """    
+    """
+
     None_ = 0
     """No compression applied to M2L operators"""
 
@@ -215,7 +215,7 @@ class KernelParams:
         If spheroidal kernel is used and an order isn't provided
         then the default is SpheroidalOrder.Three.
     base_range : Optional[float]
-        Controls how quickly the interpolant decays with distance from each point. 
+        Controls how quickly the interpolant decays with distance from each point.
         Smaller values restrict influence to a local neighborhood, while larger values
         produce smoother, broader effects.
 
@@ -223,18 +223,18 @@ class KernelParams:
         Only used in spheroidal kernels.
     total_sill : Optional[float]
         Sets the overall strength of influence each point exerts. Higher values give
-        points more weight and stronger local effects. Lower values yield smoother, 
+        points more weight and stronger local effects. Lower values yield smoother,
         less pronounced variation.
 
         Works in combination with base_range and the kernel degree.
         Only used in spheroidal kernels.
-    """    
+    """
     def __init__(
         self,
         kernel_type: FmmKernelType,
-        spheroidal_order: Optional[SpheroidalOrder],
-        base_range: Optional[float],
-        total_sill: Optional[float],
+        spheroidal_order: SpheroidalOrder | None,
+        base_range: float | None,
+        total_sill: float | None,
     ) -> None: ...
 
 class FmmTree:
@@ -248,7 +248,7 @@ class FmmTree:
     ----------
     source_points : npt.NDArray[np.float64]
         Source point locations used to build the tree.
-        Expected to be a numpy array with shape (N, D), where N is the number of points and D is 
+        Expected to be a numpy array with shape (N, D), where N is the number of points and D is
         the dimensionality.
     interpolation_order : int
         Number of Chebyshev interpolation nodes per dimension.
@@ -262,7 +262,7 @@ class FmmTree:
         Optional bounding box `[xmin, xmax, ymin, ymax, ...]`; if `None`, computed from data.
     params : Optional[FmmParams]
         Optional parameters for tuning the FMM performance.
-    """    
+    """
     def __init__(
         self,
         source_points: npt.NDArray[np.float64],
@@ -270,14 +270,13 @@ class FmmTree:
         kernel_params: KernelParams,
         adaptive_tree: bool,
         sparse: bool,
-        extents: Optional[npt.NDArray[np.float64]],
-        params: Optional[FmmParams],
+        extents: npt.NDArray[np.float64] | None,
+        params: FmmParams | None,
     ) -> None: ...
-
     def set_weights(
         self,
         weights: npt.NDArray[np.float64],
-    ) -> None: 
+    ) -> None:
         """Performs an upward pass of the tree to set the multipole coefficients.
 
         Parameters
@@ -286,13 +285,12 @@ class FmmTree:
             Numpy array of shape (N, K), where N is the number of source points and K is the number
             of right-hand sides to evaluate, containing source point weights (values)
         """
-        ...
 
     def evaluate(
         self,
         weights: npt.NDArray[np.float64],
         target_points: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.float64]: 
+    ) -> npt.NDArray[np.float64]:
         """Performs a downward pass of the tree to set the local coefficients and
         then performs a leaf evaluation pass to evaluate the values at the
         target locations.
@@ -310,15 +308,14 @@ class FmmTree:
         -------
         values : npt.NDArray[np.float64]
             Array of evaluated values with shape (N, K), where N is the number of target points and K
-            is the number of right-hand-sides evaluated.                  
+            is the number of right-hand-sides evaluated.
         """
-        ...
 
     def evaluate_with_gradients(
         self,
         weights: npt.NDArray[np.float64],
         target_points: npt.NDArray[np.float64],
-    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: 
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """Performs a downward pass of the tree to set the local coefficients and
         then performs a leaf evaluation pass to evaluate the values and gradients at the
         target locations.
@@ -339,17 +336,16 @@ class FmmTree:
             is the number of right-hand-sides evaluated.
         gradients : npt.NDArray[np.float64]
             Array of evaluated gradients with shape (N, D x M), where N is the number of target points,
-            D is the dimensionality and M is the number of columns of values interpolated.    
+            D is the dimensionality and M is the number of columns of values interpolated.
             The gradient values are stored in batches of D columns, so the first D columns are for each dimension
             of the first column of values evaluated, the second D columns are for each dimension of the second column
-            of values evaluated etc.                                       
+            of values evaluated etc.
         """
-        ...
 
     def set_local_coefficients(
         self,
         weights: npt.NDArray[np.float64],
-    ) -> None: 
+    ) -> None:
         """Performs a downward pass of the tree to set the local coefficients. Intended to be
         used before calling [`evaluate_leaves`][ferreus_bbfmm.FmmTree.evaluate_leaves].
 
@@ -359,14 +355,13 @@ class FmmTree:
             Numpy array of shape (N, K), where N is the number of source points and K is the number
             of right-hand sides to evaluate, containing source point weights (values)
         """
-        ...
 
     def evaluate_leaves(
         self,
         weights: npt.NDArray[np.float64],
         target_points: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.float64]: 
-        """Performs a leaf evaluation pass to calculate the values at the target locations. 
+    ) -> npt.NDArray[np.float64]:
+        """Performs a leaf evaluation pass to calculate the values at the target locations.
         Intended to be used after [`set_local_coefficients`][ferreus_bbfmm.FmmTree.set_local_coefficients],
         for when repeated calls to this function are desired, such as when using 'surface following'
         isosurface generation algorithms.
@@ -384,16 +379,15 @@ class FmmTree:
         -------
         values : npt.NDArray[np.float64]
             Array of evaluated values with shape (N, K), where N is the number of target points and K
-            is the number of right-hand-sides evaluated.    
+            is the number of right-hand-sides evaluated.
         """
-        ...
 
     def evaluate_leaves_with_gradients(
         self,
         weights: npt.NDArray[np.float64],
         target_points: npt.NDArray[np.float64],
-    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: 
-        """Performs a leaf evaluation pass to calculate the values and gradients at the target locations. 
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        """Performs a leaf evaluation pass to calculate the values and gradients at the target locations.
         Intended to be used after [`set_local_coefficients`][ferreus_bbfmm.FmmTree.set_local_coefficients],
         for when repeated calls to this function are desired, such as when using 'surface following'
         isosurface generation algorithms.
@@ -406,7 +400,7 @@ class FmmTree:
         target_points : npt.NDArray[np.float64]
             Numpy array of shape (N, D), where N is the number of target points and D is the
             dimensionality.
-            
+
         Returns
         -------
         values : npt.NDArray[np.float64]
@@ -414,16 +408,15 @@ class FmmTree:
             is the number of right-hand-sides evaluated.
         gradients : npt.NDArray[np.float64]
             Array of evaluated gradients with shape (N, D x M), where N is the number of target points,
-            D is the dimensionality and M is the number of columns of values interpolated.    
+            D is the dimensionality and M is the number of columns of values interpolated.
             The gradient values are stored in batches of D columns, so the first D columns are for each dimension
             of the first column of values evaluated, the second D columns are for each dimension of the second column
-            of values evaluated etc.                  
+            of values evaluated etc.
         """
-        ...
 
     def source_points(
         self,
-    ) -> npt.NDArray[np.float64]: 
+    ) -> npt.NDArray[np.float64]:
         """Source point locations used to build the tree.
 
         Returns
@@ -432,7 +425,3 @@ class FmmTree:
             Numpy array of shape (N, D), where N is the number of source points and D is the
             dimensionality.
         """
-        ...
-
-    def __repr__(self) -> str: ...
-    def __str__(self) -> str: ...

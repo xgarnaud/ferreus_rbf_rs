@@ -1,7 +1,7 @@
 ???+ example "Sphere isosurface example"
 
     ```python
-    --8<-- "examples/isosurface_sphere.py"
+    --8 < --"examples/isosurface_sphere.py"
     ```
 
     Isosurface of `0` signed distance value:

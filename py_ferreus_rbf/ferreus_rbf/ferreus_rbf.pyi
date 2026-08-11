@@ -1,49 +1,49 @@
-'''
+"""
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Stubs file for Python bindings of the RBFInterpolator module that enables typehints in IDE's.
 //
-// Created on: 15 Nov 2025     Author: Daniel Owen 
+// Created on: 15 Nov 2025     Author: Daniel Owen
 //
-// Copyright (c) 2025, Maptek Pty Ltd. All rights reserved. Licensed under the MIT License. 
+// Copyright (c) 2025, Maptek Pty Ltd. All rights reserved. Licensed under the MIT License.
 //
 /////////////////////////////////////////////////////////////////////////////////////////////
-'''
+"""
 
-from typing import Optional
 import numpy as np
 import numpy.typing as npt
+
 from ferreus_rbf.config import Params
-from ferreus_rbf.progress import Progress
 from ferreus_rbf.interpolant_config import InterpolantSettings
-from ferreus_rbf.isosurfacing import Mesh, BoundaryClosure
+from ferreus_rbf.isosurfacing import BoundaryClosure, Mesh
+from ferreus_rbf.progress import Progress
 
 class GlobalTrend:
     """
     Defines an anisotropy transform for an RBF problem by specifying
     principal directions and scaling ratios.
-     
-    The variant to use depends on the dimensionality of the RBF problem:  
-     
-    - ``GlobalTrend.one`` - for **1D problems**, with a single principal axis.  
+
+    The variant to use depends on the dimensionality of the RBF problem:
+
+    - ``GlobalTrend.one`` - for **1D problems**, with a single principal axis.
     - ``GlobalTrend.two`` - for **2D problems**, with two axes lying in a plane,
-      oriented by a rotation angle.  
+      oriented by a rotation angle.
     - ``GlobalTrend.three`` - for **3D problems**, with a full orientation
       defined by sequential rotations.
-     
+
     Each variant encodes the relative scaling (ratios) along its principal axes,
     providing a compact way to represent anisotropy and directional stretching
     appropriate for the problem dimension.
-     
+
     This is particularly useful when the input data shows a clear
     directional continuity or trend: by increasing the relative
     weighting along that direction, interpolation can better reflect
     the structure present in the data.
-     
-    **Note:** All angles are specified in **degrees**.    
-    """    
+
+    **Note:** All angles are specified in **degrees**.
+    """
     @classmethod
-    def one(major_ratio: float) -> "GlobalTrend": 
+    def one(major_ratio: float) -> GlobalTrend:
         """
         A 1D global trend.
 
@@ -58,10 +58,11 @@ class GlobalTrend:
         -------
         GlobalTrend
         """
-        ...
-    
+
     @classmethod
-    def two(rotation_angle: float, major_ratio: float, minor_ratio: float) -> "GlobalTrend": 
+    def two(
+        rotation_angle: float, major_ratio: float, minor_ratio: float
+    ) -> GlobalTrend:
         """
         A 2D global trend.
 
@@ -81,8 +82,7 @@ class GlobalTrend:
         -------
         GlobalTrend
         """
-        ...
-    
+
     @classmethod
     def three(
         dip: float,
@@ -90,8 +90,8 @@ class GlobalTrend:
         pitch: float,
         major_ratio: float,
         semi_major_ratio: float,
-        minor_ratio: float
-    ) -> "GlobalTrend": 
+        minor_ratio: float,
+    ) -> GlobalTrend:
         r"""
         A 3D global trend.
 
@@ -156,7 +156,6 @@ class GlobalTrend:
         -------
         GlobalTrend
         """
-        ...
 
 class RBFTestFunctions:
     r"""
@@ -175,7 +174,7 @@ class RBFTestFunctions:
 
         $$
         \begin{aligned}
-        F(x,y) &= 
+        F(x,y) &=
         \tfrac{3}{4}\exp\!\left[
             -\frac{(9x-2)^2 + (9y-2)^2}{4}
         \right] \\[6pt]
@@ -202,7 +201,6 @@ class RBFTestFunctions:
         (N,) float64 ndarray
             Function values at the input points.
         """
-        ...
 
     @classmethod
     def f1_3d(self, xyz: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
@@ -211,7 +209,7 @@ class RBFTestFunctions:
 
         $$
         \begin{aligned}
-        F(x,y,z) &= 
+        F(x,y,z) &=
         \tfrac{3}{4}\exp\!\left[
             -\frac{(9x-2)^2 + (9y-2)^2 + (9z-2)^2}{4}
         \right] \\[6pt]
@@ -239,13 +237,12 @@ class RBFTestFunctions:
         (N,) float64 ndarray
             Function values at the input points.
         """
-        ...
 
     @classmethod
     def f2_3d(self, xyz: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         r"""
         $$
-        F(x,y,z) = 
+        F(x,y,z) =
         \frac{
             \tanh(9z - 9x - 9y) + 1
         }{
@@ -262,7 +259,6 @@ class RBFTestFunctions:
         -------
         (N,) float64 ndarray
         """
-        ...
 
     @classmethod
     def f3_3d(self, xyz: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
@@ -285,7 +281,6 @@ class RBFTestFunctions:
         -------
         (N,) float64 ndarray
         """
-        ...
 
     @classmethod
     def f4_3d(self, xyz: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
@@ -312,7 +307,6 @@ class RBFTestFunctions:
         -------
         (N,) float64 ndarray
         """
-        ...
 
     @classmethod
     def f5_3d(self, xyz: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
@@ -339,7 +333,6 @@ class RBFTestFunctions:
         -------
         (N,) float64 ndarray
         """
-        ...
 
     @classmethod
     def f6_3d(self, xyz: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
@@ -370,7 +363,6 @@ class RBFTestFunctions:
         -------
         (N,) float64 ndarray
         """
-        ...
 
     @classmethod
     def f7_3d(self, xyz: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
@@ -399,7 +391,6 @@ class RBFTestFunctions:
         -------
         (N,) float64 ndarray
         """
-        ...
 
     @classmethod
     def f8_3d(self, xyz: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
@@ -408,7 +399,7 @@ class RBFTestFunctions:
 
         $$
         \begin{aligned}
-        F(x,y,z) &= 
+        F(x,y,z) &=
         50\,\exp\!\left[
             -200\bigl((x-0.3)^2 + (y-0.3)^2\bigr)
         \right] \\[6pt]
@@ -427,7 +418,6 @@ class RBFTestFunctions:
         -------
         (N,) float64 ndarray
         """
-        ...
 
 class Coefficients:
     """
@@ -439,25 +429,23 @@ class Coefficients:
         """Access the RBF coefficients for the source points.
 
         Returns
-        ------- 
+        -------
         npt.NDArray[np.float64]
             Array with shape (N, M), where N is the number of source points
             and M is the number of columns of values.
         """
-        ...
 
     @property
-    def poly_coefficients(self) -> Optional[npt.NDArray[np.float64]]:
+    def poly_coefficients(self) -> npt.NDArray[np.float64] | None:
         """Access the RBF coefficients for the Polynomial drift terms.
 
         Returns
         -------
-        Optional[npt.NDArray[np.float64]] 
-            Array with shape (B, M), if enabled, where B is the basis size 
-            (number of polynomial terms added to the system) and M is the 
+        Optional[npt.NDArray[np.float64]]
+            Array with shape (B, M), if enabled, where B is the basis size
+            (number of polynomial terms added to the system) and M is the
             number of columns of values.
         """
-        ...
 
 class RBFInterpolator:
     """
@@ -470,20 +458,20 @@ class RBFInterpolator:
 
     The interpolator stores:
 
-    - The original input points and values.  
-    - The solved RBF and polynomial coefficients.  
-    - Kernel settings and solver parameters used during fitting.  
-    - Optional global trend transforms (e.g. anisotropy/scaling/rotation).  
-    - An optional Fast Multipole Method (FMM) tree evaluator for efficient queries.  
+    - The original input points and values.
+    - The solved RBF and polynomial coefficients.
+    - Kernel settings and solver parameters used during fitting.
+    - Optional global trend transforms (e.g. anisotropy/scaling/rotation).
+    - An optional Fast Multipole Method (FMM) tree evaluator for efficient queries.
     """
     def __init__(
         self,
         points: npt.NDArray[np.float64],
         values: npt.NDArray[np.float64],
         interpolant_settings: InterpolantSettings,
-        params: Optional[Params] = None,
-        global_trend: Optional[GlobalTrend] = None,
-        progress_callback: Optional[Progress] = None,
+        params: Params | None = None,
+        global_trend: GlobalTrend | None = None,
+        progress_callback: Progress | None = None,
     ) -> RBFInterpolator:
         """
         Parameters
@@ -501,9 +489,8 @@ class RBFInterpolator:
         global_trend : Optional[GlobalTrend], optional
             Optional global trend transform (anisotropy / rotation), by default None
         progress_callback : Optional[Progress]
-            Optional callback for reporting solver progress, by default None            
+            Optional callback for reporting solver progress, by default None
         """
-        ...
 
     @property
     def source_points(self) -> npt.NDArray[np.float64]:
@@ -515,7 +502,6 @@ class RBFInterpolator:
             Array of the source points with shape (N, D), where N is the number of source points
             and D is the dimenstionality.
         """
-        ...
 
     @property
     def source_values(self) -> npt.NDArray[np.float64]:
@@ -527,19 +513,16 @@ class RBFInterpolator:
             Array of interpolated values with shape (N,) for scalar values or (N, M) for
             multiple value columns.
         """
-        ...
 
     @property
     def coefficients(self) -> Coefficients:
         """Access solved RBF coefficients.
-        
+
         Returns
         -------
         Coefficients
             The solved RBF coefficients.
         """
-        ...
-
 
     def evaluate(
         self,
@@ -566,7 +549,6 @@ class RBFInterpolator:
             Array of interpolated values with shape (N,) for scalar values or (N, M) for
             multiple value columns.
         """
-        ...
 
     def evaluate_with_gradients(
         self,
@@ -594,14 +576,15 @@ class RBFInterpolator:
             multiple value columns.
         gradient : npt.NDArray[np.float64]
             Array of interpolated gradients with shape (N, D x M), where N is the number of target points,
-            D is the dimensionality and M is the number of columns of values interpolated.    
+            D is the dimensionality and M is the number of columns of values interpolated.
             The gradient values are stored in batches of D columns, so the first D columns are for each dimension
             of the first column of values evaluated, the second D columns are for each dimension of the second column
             of values evaluated etc.
         """
-        ...
 
-    def evaluate_at_source(self, add_nugget: Optional[bool] = False) -> npt.NDArray[np.float64]:
+    def evaluate_at_source(
+        self, add_nugget: bool | None = False
+    ) -> npt.NDArray[np.float64]:
         """Evaluate the interpolant **at the original source points**.
 
         Useful for **convergence checks** and diagnostics.
@@ -610,26 +593,25 @@ class RBFInterpolator:
         ----------
         add_nugget : Optional[bool], optional
             Whether to add the nugget effect back to the result, by default False
-            
+
             When `add_nugget = True`, the diagonal “nugget” term is added back so the evaluated
             values should match the input samples to within the solver's tolerance (undoing any
             smoothing from the nugget).
-            
+
             When `add_nugget = False`, you observe the smoothed/regularised fit.
-            
+
         Returns
         -------
         values : npt.NDArray[np.float64]
             Array of interpolated values with shape (N,) for scalar values or (N, M) for
             multiple value columns.
-        
+
         Notes
         -----
         This path uses a sparse/leaf-only evaluation strategy optimized for source-point queries.
         """
-        ...
 
-    def build_evaluator(self, extents: Optional[npt.NDArray[np.float64]] = None) -> None:
+    def build_evaluator(self, extents: npt.NDArray[np.float64] | None = None) -> None:
         """Build and store an FMM evaluator for **repeated evaluations**.
 
         Use this when you'll call [`evaluate_targets`][ferreus_rbf.RBFInterpolator.evaluate_targets] many times (e.g. during
@@ -642,11 +624,9 @@ class RBFInterpolator:
             AABB extents to build the evaluator `[min_0.., max_0..]`, by default None.
             If None, extents are derived from the (transformed, if applicable) source points.
         """
-        ...
 
     def evaluate_targets(
-        self,
-        targets: npt.NDArray[np.float64]
+        self, targets: npt.NDArray[np.float64]
     ) -> npt.NDArray[np.float64]:
         """Evaluate using the **stored** evaluator built by [`build_evaluator`][ferreus_rbf.RBFInterpolator.build_evaluator].
 
@@ -671,11 +651,9 @@ class RBFInterpolator:
             Array of interpolated values with shape (N,) for scalar values or (N, M) for
             multiple value columns.
         """
-        ...
 
     def evaluate_targets_with_gradients(
-        self,
-        targets: npt.NDArray[np.float64]
+        self, targets: npt.NDArray[np.float64]
     ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """Evaluate the interpolant and gradient using the **stored** evaluator built by [`build_evaluator`][ferreus_rbf.RBFInterpolator.build_evaluator].
 
@@ -701,19 +679,18 @@ class RBFInterpolator:
             multiple value columns.
         gradients : npt.NDArray[np.float64]
             Array of interpolated gradients with shape (N, D x M), where N is the number of target points,
-            D is the dimensionality and M is the number of columns of values interpolated.    
+            D is the dimensionality and M is the number of columns of values interpolated.
             The gradient values are stored in batches of D columns, so the first D columns are for each dimension
             of the first column of values evaluated, the second D columns are for each dimension of the second column
-            of values evaluated etc.          
+            of values evaluated etc.
         """
-        ...
 
     def build_isosurface(
         self,
         extents: npt.NDArray[np.float64],
         resolution: float,
         isovalue: float,
-        boundary_closure: Optional[BoundaryClosure] = None,
+        boundary_closure: BoundaryClosure | None = None,
     ) -> Mesh:
         """Extract an isosurface using regularised marching tetrahedra.
 
@@ -733,14 +710,13 @@ class RBFInterpolator:
         Mesh
             Extracted triangle mesh.
         """
-        ...
 
     def build_isosurfaces(
         self,
         extents: npt.NDArray[np.float64],
         resolution: float,
         isovalues: list[float],
-        boundary_closure: Optional[BoundaryClosure] = None,
+        boundary_closure: BoundaryClosure | None = None,
     ) -> list[Mesh]:
         """Convenience wrapper for [`build_isosurface`][ferreus_rbf.RBFInterpolator.build_isosurface] that
         can extract multiple meshes from a list of isovalues at once.
@@ -761,7 +737,6 @@ class RBFInterpolator:
         list[Mesh]
             One mesh per requested isovalue.
         """
-        ...
 
     def save_model(
         self,
@@ -778,13 +753,11 @@ class RBFInterpolator:
             file path to save the model to.
 
         """
-        ...
 
     @staticmethod
     def load_model(
-        path: str,
-        progress_callback: Optional[Progress] = None
-    ) -> RBFInterpolator: 
+        path: str, progress_callback: Progress | None = None
+    ) -> RBFInterpolator:
         """Load an interpolator from a versioned **JSON envelope**, validating format & version,
         saved using [save_model][ferreus_rbf.RBFInterpolator.save_model].
 
@@ -804,5 +777,3 @@ class RBFInterpolator:
         RBFInterpolator
             A solved RBFInterpolator that can be used for evaluations and surfacing.
         """
-        ...
-

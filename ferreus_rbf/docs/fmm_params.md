@@ -19,6 +19,7 @@ computational cost. Default interpolation order:
 - Linear and Spheroidal kernels -> order `7`
 - ThinPlateSpline kernel -> order `9`
 - Cubic kernel -> order `11`  
+
 Orders that are too low may stall solver convergence.
 
 ### Default Values

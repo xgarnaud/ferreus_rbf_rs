@@ -1004,6 +1004,7 @@ mod tests {
         used.into_iter().filter(|used| !*used).count()
     }
 
+    #[allow(clippy::type_complexity)]
     fn horizontal_sheet_case() -> (AABB<f64>, Vec<f64>, Vec<usize>, Vec<(usize, usize)>) {
         let extents = AABB {
             min_corner: [0.0, 0.0, 0.0],

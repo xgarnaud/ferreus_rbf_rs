@@ -42,7 +42,7 @@ use std::fmt::Debug;
 /// );
 /// ```
 #[inline(always)]
-pub fn select_mat_rows<T>(existing_mat: &Mat<T>, row_indices: &Vec<usize>) -> Mat<T>
+pub fn select_mat_rows<T>(existing_mat: &Mat<T>, row_indices: &[usize]) -> Mat<T>
 where
     T: Clone,
 {

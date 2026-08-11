@@ -32,7 +32,7 @@ pub fn sphere_gradient(pts: MatRef<'_, f64>) -> (Mat<f64>, Mat<f64>) {
         let grad = match r > EPS {
             true => {
                 let inv_r = 1.0 / r;
-                &row * inv_r
+                row * inv_r
             }
             false => row![0.0, 0.0, 0.0],
         };
@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //Save the isosurface out to an obj file
     let name = "sphere";
     let outpath = "sphere.obj";
-    mesh.save_obj(outpath, &name)?;
+    mesh.save_obj(outpath, name)?;
 
     Ok(())
 }

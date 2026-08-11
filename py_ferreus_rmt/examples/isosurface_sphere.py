@@ -1,5 +1,6 @@
-import numpy as np
 from pathlib import Path
+
+import numpy as np
 from ferreus_rbf.isosurfacing import build_isosurface
 
 

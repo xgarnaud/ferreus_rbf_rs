@@ -296,11 +296,11 @@
 //!    *Journal of Computational Physics*, **228**(23), 8712–8725.  
 //!
 //! 2. Messner, M., Bramas, B., Coulaud, O., & Darve, E. (2012).
-//!     *[Optimized M2L kernels for the Chebyshev interpolation-based fast multipole method.](https://arxiv.org/pdf/1210.7292)*  
+//!    *[Optimized M2L kernels for the Chebyshev interpolation-based fast multipole method.](https://arxiv.org/pdf/1210.7292)*  
 //!
 //! 3. Pouransari, H., & Darve, E. (2015).
-//!     *[Optimizing the adaptive fast multipole method for fractal sets.](https://doi.org/10.1137/140962681)*
-//!     *SIAM Journal on Scientific Computing*, **37**, A1040–A1066.
+//!    *[Optimizing the adaptive fast multipole method for fractal sets.](https://doi.org/10.1137/140962681)*
+//!    *SIAM Journal on Scientific Computing*, **37**, A1040–A1066.
 
 mod aca;
 mod bbfmm;

@@ -10,10 +10,12 @@
 /////////////////////////////////////////////////////////////////////////////////////////////
 """
 
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable, Optional
+
 import numpy as np
 import numpy.typing as npt
+
 from ferreus_rmt.progress import Progress
 
 class ClusterMethod(Enum):
@@ -37,11 +39,9 @@ class BoundaryClosure(Enum):
     CloseNegative = 2
     """Close the surface as if values outside the AABB are below the isovalue."""
 
-
 class Mesh:
     """Triangle mesh returned by isosurface extraction."""
 
-    @staticmethod
     def save_obj(self, path: str, name: str) -> None:
         """Save this mesh to a Wavefront OBJ file.
 
@@ -52,21 +52,19 @@ class Mesh:
         name : str
             Object name for the mesh.
         """
-        ...
 
     @property
-    def vertices(self) -> npt.NDArray[np.float64]: 
+    def vertices(self) -> npt.NDArray[np.float64]:
         """Vertex coordinates with shape (V, 3).
 
         Returns
         -------
         npt.NDArray[np.float64]
             Array of the vertices.
-        """    
-        ...
+        """
 
     @property
-    def facets(self) -> npt.NDArray[np.uintp]: 
+    def facets(self) -> npt.NDArray[np.uintp]:
         """Triangle vertex indices with shape (F, 3).
 
         Returns
@@ -74,7 +72,6 @@ class Mesh:
         npt.NDArray[np.uintp]
             Array of triangles.
         """
-        ...
 
 def build_isosurface(
     seed_points: npt.NDArray[np.float64],
@@ -83,15 +80,14 @@ def build_isosurface(
     isovalue: float,
     surface_fn: Callable[[npt.NDArray[np.float64]], npt.NDArray[np.float64]],
     *,
-    gradient_fn: Optional[
-        Callable[
-            [npt.NDArray[np.float64]],
-            tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
-        ]
-    ] = None,
+    gradient_fn: Callable[
+        [npt.NDArray[np.float64]],
+        tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
+    ]
+    | None = None,
     cluster_method: ClusterMethod = ClusterMethod.CurvatureWeighted,
     boundary_closure: BoundaryClosure = BoundaryClosure.None_,
-    progress_callback: Optional[Progress] = None,
+    progress_callback: Progress | None = None,
 ) -> Mesh:
     """Extract an isosurface using regularised marching tetrahedra.
 
@@ -127,7 +123,6 @@ def build_isosurface(
     Mesh
         Extracted triangle mesh.
     """
-    ...
 
 def build_isosurfaces(
     seed_points: npt.NDArray[np.float64],
@@ -136,15 +131,14 @@ def build_isosurfaces(
     isovalues: list[float],
     surface_fn: Callable[[npt.NDArray[np.float64]], npt.NDArray[np.float64]],
     *,
-    gradient_fn: Optional[
-        Callable[
-            [npt.NDArray[np.float64]],
-            tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
-        ]
-    ] = None,
+    gradient_fn: Callable[
+        [npt.NDArray[np.float64]],
+        tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
+    ]
+    | None = None,
     cluster_method: ClusterMethod = ClusterMethod.CurvatureWeighted,
     boundary_closure: BoundaryClosure = BoundaryClosure.None_,
-    progress_callback: Optional[Progress] = None,
+    progress_callback: Progress | None = None,
 ) -> list[Mesh]:
     """Convenience wrapper for [`build_isosurface`][ferreus_rmt.build_isosurface] that
     can extract multiple meshes from a list of isovalues at once.
@@ -183,4 +177,3 @@ def build_isosurfaces(
     list[Mesh]
         Extracted triangle mesh.
     """
-    ...

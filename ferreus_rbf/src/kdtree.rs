@@ -74,6 +74,7 @@ struct Neighbour {
 
 impl Eq for Neighbour {}
 
+#[allow(clippy::non_canonical_partial_ord_impl)]
 impl PartialOrd for Neighbour {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         // Reverse order for max-heap
@@ -303,10 +304,10 @@ impl KDTree {
             self.k_nearest_impl(near, target, k, depth + 1, metric, heap);
         }
 
-        if let Some(far) = far_idx {
-            if heap.len() < k || Self::axis_diff_ok(diff, heap.peek().unwrap().distance_sq) {
-                self.k_nearest_impl(far, target, k, depth + 1, metric, heap);
-            }
+        if let Some(far) = far_idx
+            && (heap.len() < k || Self::axis_diff_ok(diff, heap.peek().unwrap().distance_sq))
+        {
+            self.k_nearest_impl(far, target, k, depth + 1, metric, heap);
         }
     }
 }
@@ -333,8 +334,8 @@ mod tests {
         for i in 0..points.nrows() {
             let p = PointRowWithId::new(&points.row(i), &(i as i32));
             let d = match metric {
-                DistanceMetric::Euclidean => p.distance_euclidean(&target),
-                DistanceMetric::InfinityNorm => p.distance_inf(&target),
+                DistanceMetric::Euclidean => p.distance_euclidean(target),
+                DistanceMetric::InfinityNorm => p.distance_inf(target),
             };
             if d <= radius {
                 ids.push(i as i32);

@@ -26,6 +26,7 @@ use crate::lattice::SampleLattice;
 /// The input matrix must be `N x 3`. Seeds are first clamped to the lattice AABB and deduplicated
 /// by their initial lattice cell. The remaining representatives are then iteratively projected
 /// toward `f(x) = isovalue` using values and gradients supplied by `gradient_fn`.
+#[allow(clippy::type_complexity)]
 pub(crate) fn get_unique_seed_point_ijks(
     seed_points: MatRef<f64>,
     gradient_fn: &mut dyn FnMut(MatRef<f64>) -> (Mat<f64>, Mat<f64>),

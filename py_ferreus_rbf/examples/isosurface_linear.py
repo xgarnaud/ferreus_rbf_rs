@@ -1,21 +1,23 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from ferreus_rbf import RBFInterpolator
 from ferreus_rbf.interpolant_config import (
-    RBFKernelType,
-    InterpolantSettings,
-    FittingAccuracyType,
     FittingAccuracy,
+    FittingAccuracyType,
+    InterpolantSettings,
+    RBFKernelType,
 )
 from ferreus_rbf.progress import (
-    Progress,
-    SolverIteration,
-    SurfacingProgress,
     DuplicatesRemoved,
     Message,
+    Progress,
     ProgressEvent,
+    SolverIteration,
+    SurfacingProgress,
 )
+
+from ferreus_rbf import RBFInterpolator
 
 
 def on_progress(event: ProgressEvent) -> None:
