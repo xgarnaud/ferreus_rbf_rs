@@ -56,7 +56,7 @@ where
 #[inline(always)]
 pub fn select_mat_rows(existing_mat: MatRef<f64>, row_indices: &[usize]) -> Mat<f64> {
     Mat::from_fn(row_indices.len(), existing_mat.ncols(), |i, j| {
-        existing_mat.get(row_indices[i], j).clone()
+        *existing_mat.get(row_indices[i], j)
     })
 }
 

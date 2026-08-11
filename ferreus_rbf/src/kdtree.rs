@@ -303,11 +303,10 @@ impl KDTree {
             self.k_nearest_impl(near, target, k, depth + 1, metric, heap);
         }
 
-        if let Some(far) = far_idx {
-            if heap.len() < k || Self::axis_diff_ok(diff, heap.peek().unwrap().distance_sq) {
+        if let Some(far) = far_idx
+            && (heap.len() < k || Self::axis_diff_ok(diff, heap.peek().unwrap().distance_sq)) {
                 self.k_nearest_impl(far, target, k, depth + 1, metric, heap);
             }
-        }
     }
 }
 

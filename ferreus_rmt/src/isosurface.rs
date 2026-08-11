@@ -56,18 +56,12 @@ pub enum ClusterMethod {
 
 /// Per-lattice-sample extraction state.
 #[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 struct SamplePoint {
     /// Bit mask of owned lattice edges containing an isosurface intersection.
     intersections: u16,
 }
 
-impl Default for SamplePoint {
-    fn default() -> Self {
-        Self {
-            intersections: 0u16,
-        }
-    }
-}
 
 /// Candidate vertex generated from one topology-compatible cluster of edge intersections.
 #[derive(Debug)]
@@ -558,7 +552,7 @@ where
         // it's far more efficient to collect all the unnevaluated sample points in each wavefront
         // iteration and perform a batch evaluation.
         for cell in &wavefront {
-            sample_points.entry(*cell).or_insert(SamplePoint::default());
+            sample_points.entry(*cell).or_default();
             let corners = get_edge_points::<8>(cell);
             for corner in corners {
                 if !evaluated.contains_key(&corner) {
@@ -578,7 +572,7 @@ where
         }
 
         for cell in &wavefront {
-            let corners = get_edge_points::<8>(&cell);
+            let corners = get_edge_points::<8>(cell);
             let corner_vals: Vec<f64> =
                 corners.iter().map(|c| *evaluated.get(c).unwrap()).collect();
             let s0 = corner_vals[0];
@@ -605,7 +599,7 @@ where
                 } else {
                     sample_points
                         .entry(nbr_key)
-                        .or_insert(SamplePoint::default())
+                        .or_default()
                         .intersections |= 1u16 << rev;
                 }
 
@@ -658,7 +652,7 @@ where
                 }
 
                 seen_cells.insert(nbr);
-                sample_points.entry(nbr).or_insert(SamplePoint::default());
+                sample_points.entry(nbr).or_default();
                 next_wavefront.insert(nbr);
             }
         }
@@ -753,7 +747,7 @@ where
                 }
             }
 
-            if pts.len() == 0 {
+            if pts.is_empty() {
                 continue;
             }
 

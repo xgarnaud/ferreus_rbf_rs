@@ -26,7 +26,6 @@ use faer::{Mat, MatRef, Row, concat, mat::AsMatRef};
 use ferreus_bbfmm::FmmError;
 use ferreus_rbf_utils::{self, FmmTree, KernelParams};
 use ferreus_rmt::{BoundaryClosure, ClusterMethod};
-use roots;
 use serde::{Deserialize, Serialize};
 use std::{
     cell::RefCell,
@@ -107,7 +106,7 @@ impl IterativeSolver {
     pub fn matvec(&self, weights: &MatRef<f64>) -> Mat<f64> {
         let mut fmm = self.fmm_tree.lock().unwrap();
         fast_matrix_vector_product(
-            &mut *fmm,
+            &mut fmm,
             weights,
             &self.interpolant_settings.basis_size,
             None,
@@ -125,7 +124,7 @@ impl IterativeSolver {
     ) -> Mat<f64> {
         let mut fmm = self.fmm_tree.lock().unwrap();
         fast_matrix_vector_product(
-            &mut *fmm,
+            &mut fmm,
             weights,
             &self.interpolant_settings.basis_size,
             target_indices,
@@ -146,7 +145,7 @@ impl IterativeSolver {
 
         schwarz::schwarz_preconditioner(
             residuals,
-            &mut *self.ddm_tree.lock().unwrap(),
+            &mut self.ddm_tree.lock().unwrap(),
             &matvec,
             &self.interpolant_settings,
             &self.orthonormal_poly,
@@ -219,9 +218,9 @@ impl RBFInterpolatorBuilder {
         interpolant_settings: InterpolantSettings,
     ) -> Self {
         Self {
-            points: points,
-            point_values: point_values,
-            interpolant_settings: interpolant_settings,
+            points,
+            point_values,
+            interpolant_settings,
             params: Params::builder(interpolant_settings.kernel_type).build(),
             global_trend: None,
             progress_callback: None,
@@ -383,10 +382,10 @@ impl RBFInterpolator {
             interpolant_settings,
             translation_factor: Vec::default(),
             scale_factor: Vec::default(),
-            params: params,
+            params,
             evaluator: None,
             global_trend: global_trend_transform,
-            progress_callback: progress_callback,
+            progress_callback,
         };
 
         interpolator.setup_and_solve();
@@ -425,7 +424,7 @@ impl RBFInterpolator {
         }
 
         if num_points < self.params.naive_solve_threshold {
-            let naive_point_indices: Vec<usize> = (0..num_points as usize).into_iter().collect();
+            let naive_point_indices: Vec<usize> = (0..num_points).into_iter().collect();
             let mut naive_domain = Domain::new(naive_point_indices);
 
             naive_domain.internal_points_mask =
@@ -462,7 +461,7 @@ impl RBFInterpolator {
 
             let fmm_tree = FmmTree::new(
                 self.points.clone(),
-                self.params.fmm_params.interpolation_order.clone(),
+                self.params.fmm_params.interpolation_order,
                 (*self.interpolant_settings).into(),
                 adaptive_tree,
                 sparse_tree,
@@ -517,10 +516,10 @@ impl RBFInterpolator {
             let ddm_tree = Mutex::new(ddm_tree);
 
             let iterative_solver = IterativeSolver {
-                fmm_tree: fmm_tree,
-                ddm_tree: ddm_tree,
-                monomial_matrix: monomial_matrix,
-                orthonormal_poly: orthonormal_poly,
+                fmm_tree,
+                ddm_tree,
+                monomial_matrix,
+                orthonormal_poly,
                 interpolant_settings: self.interpolant_settings.clone(),
             };
 
@@ -626,17 +625,17 @@ impl RBFInterpolator {
             evaluator_extents = Some(ferreus_rbf_utils::get_pointarray_extents(points.as_ref()));
         }
 
-        let tree = FmmTree::new(
+        
+
+        FmmTree::new(
             points,
-            self.params.fmm_params.interpolation_order.clone(),
+            self.params.fmm_params.interpolation_order,
             (*self.interpolant_settings).into(),
             adaptive,
             sparse,
             evaluator_extents,
             Some(self.params.fmm_params.into()),
-        );
-
-        tree
+        )
     }
 
     fn _get_evaluator_union_extents(
@@ -655,12 +654,12 @@ impl RBFInterpolator {
             },
         };
 
-        let combined_extents = match target_extents.is_some() {
+        
+
+        match target_extents.is_some() {
             true => union_extents(&source_extents, target_extents.unwrap().as_slice()),
             false => source_extents,
-        };
-
-        combined_extents
+        }
     }
 
     /// Evaluate the interpolant at `target_points` using a **one-shot** FMM evaluator.
@@ -806,7 +805,7 @@ impl RBFInterpolator {
             translation_factor: &self.translation_factor,
             scale_factor: &self.scale_factor,
             evaluate_gradients: false,
-            add_nugget: add_nugget,
+            add_nugget,
             global_trend: &self.global_trend,
             evaluator_mode: FmmEvaluatorMode::Full,
         };
@@ -872,10 +871,10 @@ impl RBFInterpolator {
     /// let values = rbfi.evaluate_targets(targets.as_ref());
     /// ```
     pub fn evaluate_targets(&mut self, target_points: MatRef<f64>) -> Mat<f64> {
-        let mut tree = self.evaluator.as_mut().unwrap();
+        let tree = self.evaluator.as_mut().unwrap();
 
         let evaluator_params = EvaluatorParams {
-            tree: &mut tree,
+            tree,
             target_points: target_points.as_ref(),
             coefficients: &self.coefficients,
             interpolant_settings: &self.interpolant_settings,
@@ -915,10 +914,10 @@ impl RBFInterpolator {
         &mut self,
         target_points: MatRef<f64>,
     ) -> (Mat<f64>, Mat<f64>) {
-        let mut tree = self.evaluator.as_mut().unwrap();
+        let tree = self.evaluator.as_mut().unwrap();
 
         let evaluator_params = EvaluatorParams {
-            tree: &mut tree,
+            tree,
             target_points: target_points.as_ref(),
             coefficients: &self.coefficients,
             interpolant_settings: &self.interpolant_settings,
@@ -1022,7 +1021,7 @@ impl RBFInterpolator {
         let mut surface_fn = |targets: MatRef<f64>| {
             let mut tree = tree.borrow_mut();
             let params = EvaluatorParams {
-                tree: &mut **tree,
+                tree: &mut tree,
                 target_points: targets,
                 coefficients: coeffs,
                 interpolant_settings: settings,
@@ -1039,7 +1038,7 @@ impl RBFInterpolator {
         let mut gradient_fn = |targets: MatRef<f64>| {
             let mut tree = tree.borrow_mut();
             let params = EvaluatorParams {
-                tree: &mut **tree,
+                tree: &mut tree,
                 target_points: targets,
                 coefficients: coeffs,
                 interpolant_settings: settings,
@@ -1244,7 +1243,7 @@ fn _evaluate(evaluator_params: EvaluatorParams) -> Result<(Mat<f64>, Option<Mat<
         values
             .row_iter_mut()
             .zip(evaluator_params.coefficients.point_coefficients.row_iter())
-            .for_each(|(mut a, b)| a += &b * evaluator_params.interpolant_settings.nugget);
+            .for_each(|(mut a, b)| a += b * evaluator_params.interpolant_settings.nugget);
     }
 
     if evaluator_params.interpolant_settings.basis_size != 0 {
@@ -1334,7 +1333,7 @@ fn bounding_box_corners(mins: &[f64], maxs: &[f64]) -> Mat<f64> {
 fn union_extents(a: &[f64], b: &[f64]) -> Vec<f64> {
     assert_eq!(a.len(), b.len(), "extent vectors must have same length");
     assert!(
-        a.len() % 2 == 0,
+        a.len().is_multiple_of(2),
         "extent vector length must be even (mins then maxs)"
     );
 
@@ -1345,7 +1344,7 @@ fn union_extents(a: &[f64], b: &[f64]) -> Vec<f64> {
     let mins: Vec<f64> = a_min.iter().zip(b_min).map(|(x, y)| x.min(*y)).collect();
     let maxs: Vec<f64> = a_max.iter().zip(b_max).map(|(x, y)| x.max(*y)).collect();
 
-    mins.into_iter().chain(maxs.into_iter()).collect()
+    mins.into_iter().chain(maxs).collect()
 }
 
 pub(crate) fn fast_matrix_vector_product(
@@ -1367,13 +1366,13 @@ pub(crate) fn fast_matrix_vector_product(
         evaluation_indices = target_indices.unwrap().clone();
     }
 
-    fmm_tree.set_weights(&weights);
+    fmm_tree.set_weights(weights);
 
     let target_points =
-        ferreus_rbf_utils::select_mat_rows(&fmm_tree.source_points(), &evaluation_indices);
+        ferreus_rbf_utils::select_mat_rows(fmm_tree.source_points(), &evaluation_indices);
 
     let target_values = fmm_tree
-        .evaluate(&weights, &target_points)
+        .evaluate(weights, &target_points)
         .unwrap_or_else(panic_on_fmm_error);
 
     evaluation_indices
@@ -1383,8 +1382,8 @@ pub(crate) fn fast_matrix_vector_product(
             result[(*result_idx, 0)] = *target_values.get(fmm_idx, 0);
             result[(*result_idx, 0)] += weights.get(*result_idx, 0) * nugget;
             if polynomial_matrix.is_some() {
-                result[(*result_idx, 0)] += &polynomial_matrix.as_ref().unwrap().row(*result_idx)
-                    * &weights.subrows(weights_len, *basis_size).col(0);
+                result[(*result_idx, 0)] += polynomial_matrix.as_ref().unwrap().row(*result_idx)
+                    * weights.subrows(weights_len, *basis_size).col(0);
             }
         });
 
@@ -1402,7 +1401,7 @@ pub(crate) fn fast_matrix_vector_product(
 /// Returns: cutoff distance in [0, h_ref], suitable as a minimum spacing
 /// when removing duplicate/near-duplicate points.
 fn duplicate_cutoff_distance(h_ref: f64, interpolant_settings: &InterpolantSettings) -> f64 {
-    let kparams: KernelParams = interpolant_settings.clone().into();
+    let kparams: KernelParams = (*interpolant_settings).into();
 
     let phi = |r: f64| ferreus_rbf_utils::kernel_phi(r, &kparams);
 
@@ -1454,7 +1453,7 @@ fn remove_duplicates(
         .map(|(a, b)| (a - b).abs())
         .fold(f64::NEG_INFINITY, f64::max);
 
-    let scaled_tolerance = duplicate_cutoff_distance(max_length, &interpolant_settings);
+    let scaled_tolerance = duplicate_cutoff_distance(max_length, interpolant_settings);
 
     let kdtree = KDTree::new(points);
 

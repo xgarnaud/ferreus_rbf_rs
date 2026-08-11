@@ -255,7 +255,7 @@ where
         FittingAccuracyType::Relative => rg.col(0).norm_l2(),
     };
 
-    let mut res_norm = beta.clone();
+    let mut res_norm = beta;
 
     let mut iteration = 0usize;
 

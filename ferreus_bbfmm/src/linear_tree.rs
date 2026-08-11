@@ -61,15 +61,15 @@ pub fn build_tree(
                     cell_children.insert(key);
                     cells_point_indices
                         .entry(key)
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push(i);
                 }
             }
 
             let active_children: Vec<u64> = match store_empty_leaves {
                 true => {
-                    let all_children = morton::get_children(&cell, &dimensions);
-                    all_children
+                    
+                    morton::get_children(&cell, &dimensions)
                 }
                 false => cell_children.iter().copied().collect(),
             };
@@ -135,7 +135,7 @@ pub fn build_tree(
             let (u_lists, v_lists, x_lists, w_lists) = get_interaction_lists_adaptive(
                 &all_nodes,
                 &leaf_nodes,
-                &center,
+                center,
                 &radius,
                 &dimensions,
             );
@@ -148,7 +148,7 @@ pub fn build_tree(
                 &leaf_nodes,
                 &cells_point_indices,
                 &children,
-                &center,
+                center,
                 &radius,
                 &dimensions,
             );
@@ -274,7 +274,7 @@ pub fn get_interaction_lists_adaptive(
             let mut cell_v_list: HashSet<u64> = HashSet::new();
             let mut cell_w_list: HashSet<u64> = HashSet::new();
 
-            if let Some(parent) = morton::get_parent(key, &dim) {
+            if let Some(parent) = morton::get_parent(key, dim) {
                 let parent_colleagues = morton::get_neighbours(parent, dim);
 
                 let parent_colleagues_children: Vec<u64> = parent_colleagues
@@ -286,17 +286,17 @@ pub fn get_interaction_lists_adaptive(
                     .iter()
                     .filter(|pcc| {
                         complete_tree.contains(pcc)
-                            && !morton::are_adjacent(*key, **pcc, &tree_center, *tree_radius, &dim)
+                            && !morton::are_adjacent(*key, **pcc, tree_center, *tree_radius, dim)
                     })
                     .for_each(|pcc| {
                         cell_v_list.insert(*pcc);
                     });
 
-                if leaves_set.contains(&key) {
-                    let colleagues = morton::get_neighbours(*key, &dim);
+                if leaves_set.contains(key) {
+                    let colleagues = morton::get_neighbours(*key, dim);
                     let colleagues_children: Vec<u64> = colleagues
                         .iter()
-                        .flat_map(|col| morton::get_children(&col, &dim))
+                        .flat_map(|col| morton::get_children(col, dim))
                         .collect();
 
                     let mut colleagues_ancestors: VecDeque<u64> =
@@ -313,14 +313,14 @@ pub fn get_interaction_lists_adaptive(
                         if morton::are_adjacent(
                             *key,
                             current_cell,
-                            &tree_center,
+                            tree_center,
                             *tree_radius,
-                            &dim,
+                            dim,
                         ) {
                             if leaves_set.contains(&current_cell) {
                                 cell_u_list.insert(current_cell);
                             } else {
-                                if let Some(parent) = morton::get_parent(&current_cell, &dim) {
+                                if let Some(parent) = morton::get_parent(&current_cell, dim) {
                                     colleagues_ancestors.push_back(parent);
                                 }
                             }
@@ -337,9 +337,9 @@ pub fn get_interaction_lists_adaptive(
                         if morton::are_adjacent(
                             *key,
                             current_cell,
-                            &tree_center,
+                            tree_center,
                             *tree_radius,
-                            &dim,
+                            dim,
                         ) {
                             // Adjacent cells to the key go to the u_list
                             if leaves_set.contains(&current_cell) {
@@ -347,7 +347,7 @@ pub fn get_interaction_lists_adaptive(
                             } else {
                                 // Expand non-leaf adjacent cells
                                 let next_level_children: Vec<u64> =
-                                    morton::get_children(&current_cell, &dim)
+                                    morton::get_children(&current_cell, dim)
                                         .iter()
                                         .filter(|child| complete_tree.contains(child))
                                         .cloned()
@@ -374,13 +374,13 @@ pub fn get_interaction_lists_adaptive(
     let mut x_lists = HashMap::new();
 
     for (key, u, v, w) in results.iter() {
-        if u.len() > 0 {
+        if !u.is_empty() {
             u_lists.insert(*key, u.clone());
         }
-        if v.len() > 0 {
+        if !v.is_empty() {
             v_lists.insert(*key, v.clone());
         }
-        if w.len() > 0 {
+        if !w.is_empty() {
             w_lists.insert(*key, w.clone());
         }
     }
@@ -410,13 +410,13 @@ fn get_interaction_lists_regular(
         .map(|&cell| {
             let (u_list, v_list) = compute_u_v_list(
                 &cell,
-                &children,
-                &cells_points_indices,
-                &dimensions,
-                &tree,
-                &leaves,
-                &center,
-                &radius,
+                children,
+                cells_points_indices,
+                dimensions,
+                tree,
+                leaves,
+                center,
+                radius,
             );
             (cell, u_list, v_list)
         })
@@ -449,17 +449,16 @@ fn compute_u_v_list(
     let mut u_list = HashSet::new();
     let mut v_list = HashSet::new();
 
-    if let Some(parent) = morton::get_parent(&cell, dimensions) {
-        if leaves.contains(&cell) {
-            if let Some(siblings) = children.get(&parent) {
+    if let Some(parent) = morton::get_parent(cell, dimensions) {
+        if leaves.contains(cell)
+            && let Some(siblings) = children.get(&parent) {
                 for sib in siblings {
-                    if cells_points_indices.get(&*sib).is_some() {
-                        u_list.insert(sib.clone());
+                    if cells_points_indices.get(sib).is_some() {
+                        u_list.insert(*sib);
                     }
                 }
             }
-        }
-        let parent_colleagues: Vec<u64> = morton::get_neighbours(parent, &dimensions)
+        let parent_colleagues: Vec<u64> = morton::get_neighbours(parent, dimensions)
             .into_iter()
             .filter(|key| tree.contains(key))
             .collect();
@@ -467,9 +466,9 @@ fn compute_u_v_list(
         for pc in parent_colleagues {
             if let Some(pcc) = children.get(&pc) {
                 for colleague in pcc {
-                    if cells_points_indices.get(&*colleague).is_some() {
-                        if morton::are_adjacent(*cell, *colleague, &center, *radius, &dimensions) {
-                            if leaves.contains(&cell) {
+                    if cells_points_indices.get(colleague).is_some() {
+                        if morton::are_adjacent(*cell, *colleague, center, *radius, dimensions) {
+                            if leaves.contains(cell) {
                                 u_list.insert(*colleague);
                             }
                         } else {
@@ -500,10 +499,10 @@ pub fn points_to_keys(
         .enumerate()
         .map(|(idx, point)| {
             let anchor = morton::point_to_anchor(point, &depth, &displacement, &side_length);
-            let mut current_key = morton::encode_morton_point(anchor, &dimensions);
+            let mut current_key = morton::encode_morton_point(anchor, dimensions);
 
             while !leaves_set.contains(&current_key) {
-                current_key = morton::get_parent(&current_key, &dimensions)
+                current_key = morton::get_parent(&current_key, dimensions)
                     .ok_or(FmmError::PointOutsideTree { point_index: idx })?;
             }
 

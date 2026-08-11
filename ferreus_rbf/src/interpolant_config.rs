@@ -112,7 +112,7 @@ impl InterpolantSettingsBuilder {
     /// Creates a new instance of the [`InterpolantSettingsBuilder`].
     fn new(kernel_type: RBFKernelType) -> Self {
         Self {
-            kernel_type: kernel_type,
+            kernel_type,
             spheroidal_order: SpheroidalOrder::Three,
             drift: get_min_drift(kernel_type),
             nugget: 0.0,

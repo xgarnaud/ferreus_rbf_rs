@@ -11,7 +11,6 @@
 use faer::{Mat, MatRef};
 use faer_ext::IntoFaer;
 use ferreus_bbfmm::FmmError;
-use ferreus_rbf_utils;
 use ferreus_rbf_utils::KernelType;
 use numpy::{PyArray1, PyArray2, PyArrayMethods, PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::prelude::*;
@@ -385,6 +384,6 @@ impl FmmTree {
 
     /// Returns the source points matrix as a NumPy array.
     fn source_points(&self, py: Python<'_>) -> Py<PyAny> {
-        mat_to_numpy(&self.inner.source_points(), py)
+        mat_to_numpy(self.inner.source_points(), py)
     }
 }

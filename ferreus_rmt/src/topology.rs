@@ -278,10 +278,10 @@ pub fn test_topology(
                     edges: BitIndexIter::new(comp).collect(),
                 });
             }
-            return TopologyResult {
+            TopologyResult {
                 case: TopologyCase::MultiSurface,
                 clusters: parts,
-            };
+            }
         }
         false => {
             // holes = connected components of complement within 14 edges
@@ -305,10 +305,10 @@ pub fn test_topology(
                 edges: BitIndexIter::new(m).collect(),
             });
 
-            return TopologyResult {
+            TopologyResult {
                 case: TopologyCase::SimpleSurface,
                 clusters: parts,
-            };
+            }
         }
-    };
+    }
 }

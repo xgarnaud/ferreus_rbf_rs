@@ -252,15 +252,14 @@ fn clip_polygon_to_plane(
     for &curr in polygon {
         let curr_inside = point_inside_plane(curr, plane, extents, eps);
 
-        if curr_inside != prev_inside {
-            if let Some(t) = segment_plane_t(prev, curr, plane, extents, eps) {
+        if curr_inside != prev_inside
+            && let Some(t) = segment_plane_t(prev, curr, plane, extents, eps) {
                 clipped.push(snap_near_bbox(
                     snap_to_plane(interpolate_points(prev, curr, t), plane, extents),
                     extents,
                     eps,
                 ));
             }
-        }
 
         if curr_inside {
             clipped.push(snap_near_bbox(curr, extents, eps));

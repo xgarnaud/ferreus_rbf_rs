@@ -540,17 +540,11 @@ impl From<FittingAccuracyType> for interpolant_config::FittingAccuracyType {
 
 #[pyclass]
 #[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub struct FittingAccuracy {
     inner: interpolant_config::FittingAccuracy,
 }
 
-impl Default for FittingAccuracy {
-    fn default() -> Self {
-        Self {
-            inner: interpolant_config::FittingAccuracy::default(),
-        }
-    }
-}
 
 #[pymethods]
 impl FittingAccuracy {
@@ -672,7 +666,7 @@ impl From<GlobalTrend> for ferreus_rbf::GlobalTrend {
 }
 impl From<&GlobalTrend> for ferreus_rbf::GlobalTrend {
     fn from(pygt: &GlobalTrend) -> Self {
-        pygt.inner.clone()
+        pygt.inner
     }
 }
 
@@ -923,14 +917,14 @@ impl RBFInterpolator {
     #[getter]
     fn source_points<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray2<f64>> {
         let points = &self.inner.points;
-        mat_to_numpy(&points, py)
+        mat_to_numpy(points, py)
     }
 
     /// Access the stored source values from the interpolator
     #[getter]
     fn source_values<'py>(&self, py: Python<'py>) -> Py<PyAny> {
         let values = &self.inner.point_values;
-        mat_to_numpy_scalar_or_matrix(&values, py)
+        mat_to_numpy_scalar_or_matrix(values, py)
     }
 }
 
@@ -1030,7 +1024,7 @@ pub fn build_isosurface<'py>(
             let targets_np = mat_to_numpy(&targets_owned, py);
 
             let result_obj: Py<PyAny> = match isosurface_fn.call1(py, (targets_np,)) {
-                Ok(obj) => obj.into(),
+                Ok(obj) => obj,
                 Err(err) => {
                     err.print(py);
                     panic!("surface_fn callback raised an exception")
@@ -1059,7 +1053,7 @@ pub fn build_isosurface<'py>(
                 let targets_np = matref_to_numpy(targets, py);
 
                 let result_obj: Py<PyAny> = match gradient_fn.call1(py, (targets_np,)) {
-                    Ok(obj) => obj.into(),
+                    Ok(obj) => obj,
                     Err(err) => {
                         err.print(py);
                         panic!("gradient_fn callback raised an exception")
@@ -1161,7 +1155,7 @@ pub fn build_isosurfaces<'py>(
             let targets_np = mat_to_numpy(&targets_owned, py);
 
             let result_obj: Py<PyAny> = match isosurface_fn.call1(py, (targets_np,)) {
-                Ok(obj) => obj.into(),
+                Ok(obj) => obj,
                 Err(err) => {
                     err.print(py);
                     panic!("surface_fn callback raised an exception")
@@ -1190,7 +1184,7 @@ pub fn build_isosurfaces<'py>(
                 let targets_np = matref_to_numpy(targets, py);
 
                 let result_obj: Py<PyAny> = match gradient_fn.call1(py, (targets_np,)) {
-                    Ok(obj) => obj.into(),
+                    Ok(obj) => obj,
                     Err(err) => {
                         err.print(py);
                         panic!("gradient_fn callback raised an exception")

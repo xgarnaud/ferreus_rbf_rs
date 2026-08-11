@@ -44,7 +44,6 @@ use faer::{
     reborrow::*,
 };
 
-use ferreus_rbf_utils;
 
 pub enum DomainSolver {
     Llt(LltRfp<f64>),
@@ -159,7 +158,7 @@ impl Domain {
     ) {
         let mut lhs: Mat<f64>;
         let domain_points =
-            ferreus_rbf_utils::select_mat_rows(&source_points, &self.overlapping_point_indices);
+            ferreus_rbf_utils::select_mat_rows(source_points, &self.overlapping_point_indices);
 
         if interpolant_settings.basis_size != 0 {
             // Scale the domain points to the [-1, 1]^d hypercube for monomial evaluation.
@@ -201,7 +200,7 @@ impl Domain {
                 .count();
 
             // Pick the k pivoted monomial columns, independent on this node set.
-            let mut unisolvent_columns: Vec<usize> = piv_fwd[..rank].iter().cloned().collect();
+            let mut unisolvent_columns: Vec<usize> = piv_fwd[..rank].to_vec();
             unisolvent_columns.sort();
 
             // Reduced full rank monomial matrix.
@@ -219,7 +218,7 @@ impl Domain {
             let qrr = full_rank_monomials.transpose().col_piv_qr();
             let (piv_fwd, _) = qrr.P().arrays();
 
-            let mut special_point_indices: Vec<usize> = piv_fwd[..rank].iter().cloned().collect();
+            let mut special_point_indices: Vec<usize> = piv_fwd[..rank].to_vec();
             special_point_indices.sort();
 
             // Extract the special point monomials.
@@ -410,8 +409,8 @@ impl Domain {
 
             // Augment rhs: rhs = Q^T d_special + d_non_special
             rhs = self.q_matrix_top.as_ref().unwrap().transpose()
-                * &domain_values.subrows(0, num_special_points)
-                + &domain_values.subrows(num_special_points, num_points);
+                * domain_values.subrows(0, num_special_points)
+                + domain_values.subrows(num_special_points, num_points);
         } else {
             // Standard case.
             rhs = domain_values.clone();

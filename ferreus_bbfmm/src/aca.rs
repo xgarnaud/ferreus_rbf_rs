@@ -47,7 +47,7 @@ where
     let mut residual_norm = 0.0;
 
     // Start ACA from row 0
-    let mut i = 0 as usize;
+    let mut i = 0_usize;
     let mut j: usize;
 
     // Inner product estimate of previously added terms
@@ -96,15 +96,15 @@ where
         if k > 0 {
             if k == 1 {
                 // Optimized case for rank-1
-                let part_1 = u.col(0).transpose() * &u_column_j.col(0);
-                let part_2 = v.col(0).transpose() * &v_column_i.row(0).transpose();
+                let part_1 = u.col(0).transpose() * u_column_j.col(0);
+                let part_2 = v.col(0).transpose() * v_column_i.row(0).transpose();
                 sum_k = part_1 * part_2;
             } else {
                 // General case: sum of dot products between u_k and previous u_i times v_k and v_i
                 let part1 = u.submatrix(0, 0, num_rows, k).transpose() * &u_column_j;
                 // let part2 = v.submatrix(0, 0, num_rows, k).transpose() * &v_column_i.transpose();
-                let part2 = v.submatrix(0, 0, num_columns, k).transpose() * &v_column_i.transpose();
-                let part3 = &part1.transpose() * &part2;
+                let part2 = v.submatrix(0, 0, num_columns, k).transpose() * v_column_i.transpose();
+                let part3 = part1.transpose() * &part2;
 
                 // Frobenius-like inner product
                 sum_k = part3.as_mat_ref().sum();
@@ -181,7 +181,7 @@ pub fn recompress_aca(u_aca: &Mat<f64>, v_aca: &Mat<f64>, epsilon: &f64) -> (Mat
     let rv = v_qr.thin_R(); // k × k upper triangular
 
     // SVD of inner core product R_u * R_v^T
-    let ur_vrt = &ru * &rv.transpose(); // shape: k × k
+    let ur_vrt = ru * rv.transpose(); // shape: k × k
 
     let svd = ur_vrt.svd().unwrap();
     let ur = svd.U(); // Left singular vectors (k × k)
@@ -190,7 +190,7 @@ pub fn recompress_aca(u_aca: &Mat<f64>, v_aca: &Mat<f64>, epsilon: &f64) -> (Mat
 
     // Determine new target rank based on cumulative sum of squares
     let sigma_vec: Vec<f64> = sr.column_vector().iter().cloned().collect();
-    let new_rank = calculate_singular_values_cutoff(sigma_vec, &epsilon);
+    let new_rank = calculate_singular_values_cutoff(sigma_vec, epsilon);
 
     // Recompress: U = Q_u * U_r * diag(sigma), V = V_r^T * Q_v^T
     let u = qu * (ur.subcols(0, new_rank) * sr.column_vector().subrows(0, new_rank).as_diagonal());
@@ -215,12 +215,12 @@ pub fn calculate_singular_values_cutoff(sigma: Vec<f64>, epsilon: &f64) -> usize
     let eps_qr = cumulative_sum_sqr[0] * epsilon * epsilon;
 
     // Find smallest index where residual falls below threshold
-    let cutoff = cumulative_sum_sqr
+    
+
+    cumulative_sum_sqr
         .iter()
         .position(|&x| x < eps_qr)
-        .unwrap_or(cumulative_sum_sqr.len());
-
-    cutoff
+        .unwrap_or(cumulative_sum_sqr.len())
 }
 
 /// Compute reverse cumulative sum of squared singular values.

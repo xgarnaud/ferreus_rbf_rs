@@ -11,7 +11,6 @@
 
 use faer::{Mat, MatRef};
 use faer_ext::IntoFaer;
-use ferreus_rmt;
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::exceptions::{PyOSError, PyValueError};
 use pyo3::prelude::*;
@@ -293,7 +292,7 @@ pub fn build_isosurface(
             let targets_np = matref_to_numpy(targets, py);
 
             let result_obj: Py<PyAny> = match surface_fn.call1(py, (targets_np,)) {
-                Ok(obj) => obj.into(),
+                Ok(obj) => obj,
                 Err(err) => {
                     err.print(py);
                     panic!("surface_fn callback raised an exception")
@@ -320,7 +319,7 @@ pub fn build_isosurface(
                 let targets_np = matref_to_numpy(targets, py);
 
                 let result_obj: Py<PyAny> = match gradient_fn.call1(py, (targets_np,)) {
-                    Ok(obj) => obj.into(),
+                    Ok(obj) => obj,
                     Err(err) => {
                         err.print(py);
                         panic!("gradient_fn callback raised an exception")
@@ -421,7 +420,7 @@ pub fn build_isosurfaces<'py>(
             let targets_np = mat_to_numpy(&targets_owned, py);
 
             let result_obj: Py<PyAny> = match isosurface_fn.call1(py, (targets_np,)) {
-                Ok(obj) => obj.into(),
+                Ok(obj) => obj,
                 Err(err) => {
                     err.print(py);
                     panic!("surface_fn callback raised an exception")
@@ -450,7 +449,7 @@ pub fn build_isosurfaces<'py>(
                 let targets_np = matref_to_numpy(targets, py);
 
                 let result_obj: Py<PyAny> = match gradient_fn.call1(py, (targets_np,)) {
-                    Ok(obj) => obj.into(),
+                    Ok(obj) => obj,
                     Err(err) => {
                         err.print(py);
                         panic!("gradient_fn callback raised an exception")

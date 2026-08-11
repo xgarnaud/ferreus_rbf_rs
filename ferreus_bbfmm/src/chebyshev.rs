@@ -116,7 +116,7 @@ fn calculate_sn(
     polynomial_nodes: &Mat<f64>,
     interpolation_order: usize,
 ) -> Mat<f64> {
-    let mut sn = tn_x * &polynomial_nodes.transpose();
+    let mut sn = tn_x * polynomial_nodes.transpose();
 
     sn.col_iter_mut().for_each(|col| {
         col.iter_mut().for_each(|element| {
@@ -132,7 +132,7 @@ fn calculate_dsn_dx(
     polynomial_nodes: &Mat<f64>,
     interpolation_order: usize,
 ) -> Mat<f64> {
-    let mut dsn = dtn_x * &polynomial_nodes.transpose();
+    let mut dsn = dtn_x * polynomial_nodes.transpose();
     let scale = 2.0 / interpolation_order as f64;
 
     dsn.col_iter_mut()
@@ -148,7 +148,7 @@ fn get_cheb_transfer_from_parent_to_children(
     cheb_nodes: &Vec<f64>,
     polynomial_nodes: &Mat<f64>,
 ) -> Mat<f64> {
-    let num_child_cheb_nodes = 2 * interpolation_order as usize;
+    let num_child_cheb_nodes = 2 * interpolation_order;
 
     // Initialise the one dimensional transfer array.
     // So, using an interpolation order of 3 as an example in one dimension, we go from
@@ -176,19 +176,19 @@ fn get_cheb_transfer_from_parent_to_children(
     );
 
     // Calculate the sum of the Chebyshev polynomials.
-    calculate_sn(tn_x, &polynomial_nodes, interpolation_order)
+    calculate_sn(tn_x, polynomial_nodes, interpolation_order)
 }
 
 /// Returns the relative Morton offsets in an N-dimensional hypercube.
 pub fn calculate_relative_offsets_morton(dim: &usize) -> Mat<usize> {
     let num_children = 2usize.pow(*dim as u32);
 
-    let output = Mat::<usize>::from_fn(num_children, *dim, |i, j| match (i & (1 << j)) != 0 {
+    
+
+    Mat::<usize>::from_fn(num_children, *dim, |i, j| match (i & (1 << j)) != 0 {
         true => 1,
         false => 0,
-    });
-
-    output
+    })
 }
 
 /// Calculates the Chebyshev weights to transfer from the Chebyshev nodes of the
@@ -203,15 +203,15 @@ fn get_m2m_transfer_matrices(
     // Get the transfer weights to go from cheb nodes of parent to cheb nodes of children.
     let sn = get_cheb_transfer_from_parent_to_children(
         interpolation_order,
-        &cheb_nodes,
-        &polynomial_nodes,
+        cheb_nodes,
+        polynomial_nodes,
     );
 
     // Split the transfer weights array in half row wise.
     let child_transfers = sn.split_at_row(interpolation_order);
 
     // Get an array of the unique transfer vectors for well separated cells based on Morton order.
-    let m2m_transfer_vector_array: Mat<usize> = calculate_relative_offsets_morton(&dimensions);
+    let m2m_transfer_vector_array: Mat<usize> = calculate_relative_offsets_morton(dimensions);
 
     // Loop for each child cell
     (0..*num_child_cells)
@@ -360,13 +360,13 @@ fn calculate_diagonal_axial_permutation_indices(
         alpha = multi_indices.row(j);
 
         if diagonal {
-            alpha_prime = permute_multi_index_diagonal(&alpha, &sort_indices.unwrap());
+            alpha_prime = permute_multi_index_diagonal(&alpha, sort_indices.unwrap());
         } else {
             alpha_prime =
-                permute_multi_index_axial(&alpha, transfer_vector.unwrap(), &interpolation_order)
+                permute_multi_index_axial(&alpha, transfer_vector.unwrap(), interpolation_order)
         }
 
-        i = map_multi_index_to_k(&alpha_prime, &interpolation_order);
+        i = map_multi_index_to_k(&alpha_prime, interpolation_order);
 
         permutation_indices[i] = j;
     }
@@ -405,7 +405,7 @@ fn lookup_diagonal_permutation_cases(
     let m2l_vector_sorted_axes: Vec<Vec<usize>> = all_m2l_vectors
         .row_iter()
         .map(|row| {
-            let abs_row_vec: Vec<i32> = row.iter().map(|axis| axis.abs() * -1).collect();
+            let abs_row_vec: Vec<i32> = row.iter().map(|axis| -axis.abs()).collect();
             utils::argsort(&abs_row_vec)
         })
         .collect();
@@ -498,7 +498,7 @@ fn get_permutation_lookups(
         .unique()
         .collect();
 
-    let axis_sign_permutations = utils::cartesian_product::<i32>(&vec![-1, 1], *dimensions);
+    let axis_sign_permutations = utils::cartesian_product::<i32>(&[-1, 1], *dimensions);
 
     let num_axis_order_permutations: usize = axis_order_permutations.len();
     let num_axis_sign_permutations = axis_sign_permutations.shape().0;
@@ -513,7 +513,7 @@ fn get_permutation_lookups(
             calculate_diagonal_axial_permutation_indices(
                 None,
                 Some(i),
-                &interpolation_order,
+                interpolation_order,
                 &multi_indices,
                 true,
             )
@@ -526,7 +526,7 @@ fn get_permutation_lookups(
             calculate_diagonal_axial_permutation_indices(
                 Some(i),
                 None,
-                &interpolation_order,
+                interpolation_order,
                 &multi_indices,
                 false,
             )
@@ -537,7 +537,6 @@ fn get_permutation_lookups(
         0..num_axis_sign_permutations,
         0..num_axis_order_permutations
     )
-    .into_iter()
     .map(|(a, b)| vec![a, b])
     .collect();
 
@@ -556,7 +555,7 @@ fn get_permutation_lookups(
 
     let inverse_permutations: Vec<Vec<usize>> = combined_permutation_indices
         .iter()
-        .map(|permutation| utils::argsort(&permutation))
+        .map(|permutation| utils::argsort(permutation))
         .collect();
 
     let axial_permutation_cases =
@@ -590,7 +589,7 @@ fn generate_chebyshev_target_points(
     dimensions: &usize,
     length: &f64,
 ) -> Mat<f64> {
-    let mut chebyshev_target_points = utils::cartesian_product::<f64>(&nodes, *dimensions);
+    let mut chebyshev_target_points = utils::cartesian_product::<f64>(nodes, *dimensions);
 
     chebyshev_target_points.row_iter_mut().for_each(|row| {
         row.iter_mut().for_each(|element| *element *= 0.5 * length);
@@ -656,7 +655,7 @@ pub fn precompute_approximation_operators<K: KernelFunction + Send + Sync>(
     compression_type: &M2LCompressionType,
     epsilon: f64,
 ) -> PrecomputeOperators {
-    let num_child_cells = (2 as usize).pow(dimensions as u32);
+    let num_child_cells = 2_usize.pow(dimensions as u32);
     let num_nodes_nd = interpolation_order.pow(dimensions as u32);
 
     // Generate the one dimensional Chebyshev nodes.
@@ -848,14 +847,14 @@ pub fn get_approximation_coefficients(
     let mut one_d_derivative_coefficients: Option<Vec<Mat<f64>>> =
         evaluate_gradients.then(|| Vec::with_capacity(*dimensions));
 
-    for d in 0..*dimensions as usize {
+    for d in 0..*dimensions {
         let column_vec = cell_point_locations.col_as_slice(d);
 
         if evaluate_gradients {
             let (tn_x, dtn_x) = evaluate_chebyshev_polynomials(
                 interpolation_order,
                 cell_point_locations.nrows(),
-                &column_vec,
+                column_vec,
                 true,
             );
             let sn = calculate_sn(tn_x, polynomial_nodes, interpolation_order);
@@ -874,7 +873,7 @@ pub fn get_approximation_coefficients(
             let (tn_x, _) = evaluate_chebyshev_polynomials(
                 interpolation_order,
                 cell_point_locations.nrows(),
-                &column_vec,
+                column_vec,
                 false,
             );
             let sn = calculate_sn(tn_x, polynomial_nodes, interpolation_order);

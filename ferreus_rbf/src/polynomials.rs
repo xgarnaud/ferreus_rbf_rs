@@ -22,7 +22,7 @@ pub fn evaluate_monomials(
     // Scale the domain points to the [-1, 1]^d hypercube for monomial evaluation.
     let mut scaled_points = points.clone().to_owned();
 
-    common::scale_points(&mut scaled_points, &translation_factor, &scale_factor);
+    common::scale_points(&mut scaled_points, translation_factor, scale_factor);
 
     let (n, d) = scaled_points.shape();
     let mut monomials = Mat::<f64>::zeros(n, *basis_size);

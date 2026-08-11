@@ -27,8 +27,8 @@ use crate::morton_constants::{
 
 /// Gets the side length of a cell for the current level.
 pub fn get_side_length(radius: f64, level: u64) -> f64 {
-    let side_length = 2.0 * radius / ((1 << level) as f64);
-    side_length
+    
+    2.0 * radius / ((1 << level) as f64)
 }
 
 /// Finds the 'anchor' (origin) of the cell in which a point in world coordinates lies.
@@ -45,7 +45,7 @@ pub fn point_to_anchor(
     for (i, col) in point.iter().enumerate() {
         anchor.push(((col - displacement[i]) / side_length).floor() as u64);
     }
-    anchor.push(*level as u64);
+    anchor.push(*level);
 
     anchor
 }
@@ -125,7 +125,7 @@ pub fn get_level(key: &u64) -> u64 {
 
 /// Decode a Morton encoded key into an anchor using the provided lookup tables.
 pub fn decode_key(key: &u64, dimensions: &Dimensions) -> Vec<u64> {
-    let level = get_level(&key);
+    let level = get_level(key);
     let key_no_level = key >> LEVEL_DISPLACEMENT;
     let num_loops = 7;
     let mut anchor = vec![0; *dimensions as usize + 1];
@@ -266,7 +266,7 @@ pub fn get_neighbours(key: u64, dimensions: &Dimensions) -> Vec<u64> {
 pub fn get_siblings(key: &u64, dimensions: &Dimensions) -> Vec<u64> {
     let num_siblings = 2u64.pow(*dimensions as u32);
 
-    let level = get_level(&key);
+    let level = get_level(key);
     let key_no_level = key >> LEVEL_DISPLACEMENT;
 
     let root = match dimensions {
@@ -278,22 +278,22 @@ pub fn get_siblings(key: &u64, dimensions: &Dimensions) -> Vec<u64> {
     (0..num_siblings)
         .into_iter()
         .map(|suffix| {
-            let sibling = ((root | suffix) << LEVEL_DISPLACEMENT) | level;
-            sibling
+            
+            ((root | suffix) << LEVEL_DISPLACEMENT) | level
         })
         .collect()
 }
 
 // Gets the keys for all children of the current key.
 pub fn get_children(key: &u64, dimensions: &Dimensions) -> Vec<u64> {
-    let level = get_level(&key);
+    let level = get_level(key);
     let key_no_level = key >> LEVEL_DISPLACEMENT;
 
     let mut child = key_no_level << *dimensions as isize;
     child <<= LEVEL_DISPLACEMENT;
     child |= level + 1;
 
-    get_siblings(&child, &dimensions)
+    get_siblings(&child, dimensions)
 }
 
 // Gets the child index of a key.
@@ -313,8 +313,8 @@ pub fn are_adjacent(
     dimensions: &Dimensions,
 ) -> bool {
     let tolerance = 1e-6;
-    let (center_a, length_a) = get_center_length(cell_a, &tree_center, tree_radius, &dimensions);
-    let (center_b, length_b) = get_center_length(cell_b, &tree_center, tree_radius, &dimensions);
+    let (center_a, length_a) = get_center_length(cell_a, tree_center, tree_radius, dimensions);
+    let (center_b, length_b) = get_center_length(cell_b, tree_center, tree_radius, dimensions);
 
     let length = 0.5 * (length_a + length_b);
 
@@ -331,7 +331,7 @@ pub fn get_center_length(
     tree_radius: f64,
     dimensions: &Dimensions,
 ) -> (Vec<f64>, f64) {
-    let mut anchor = decode_key(&key, &dimensions);
+    let mut anchor = decode_key(&key, dimensions);
     let level = anchor.pop().unwrap();
     let side_length = get_side_length(tree_radius, level);
     let displacement: Vec<f64> = tree_center.iter().map(|&c| c - tree_radius).collect();
