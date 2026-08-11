@@ -1,4 +1,5 @@
-from typing import Callable, Optional, Union
+from collections.abc import Callable
+from typing import TypeAlias
 
 class IsosurfaceProgress:
     """
@@ -13,6 +14,7 @@ class IsosurfaceProgress:
     progress : float
         Fraction in ``[0, 1]`` indicating overall progress.
     """
+
     isovalue: float
     stage: str
     progress: float
@@ -26,12 +28,13 @@ class Message:
     message : str
         The message text.
     """
+
     message: str
 
-ProgressEvent = Union[IsosurfaceProgress, Message]
+ProgressEvent: TypeAlias = IsosurfaceProgress | Message
 """Union of all progress event payloads passed to :class:`Progress` callbacks."""
 
-ProgressCallback = Callable[[ProgressEvent], None]
+ProgressCallback: TypeAlias = Callable[[ProgressEvent], None]
 """Callable accepting one :data:`ProgressEvent` and returning ``None``."""
 
 class Progress:
@@ -45,5 +48,5 @@ class Progress:
     """
     def __init__(
         self,
-        callback: Optional[ProgressCallback] = None,
+        callback: ProgressCallback | None = None,
     ) -> None: ...

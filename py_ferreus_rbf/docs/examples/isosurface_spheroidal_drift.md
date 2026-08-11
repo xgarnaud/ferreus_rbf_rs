@@ -1,7 +1,7 @@
 ???+ example "Intrusive style isosurface example"
 
     ```python
-    --8<-- "examples/isosurface_spheroidal_drift.py"
+    --8 < --"examples/isosurface_spheroidal_drift.py"
     ```
 
     Isosurface of `0` signed distance value:

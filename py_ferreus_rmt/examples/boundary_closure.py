@@ -1,6 +1,8 @@
-import numpy as np
 from pathlib import Path
-from ferreus_rbf.isosurfacing import build_isosurface, BoundaryClosure
+
+import numpy as np
+from ferreus_rbf.isosurfacing import BoundaryClosure, build_isosurface
+
 
 # Define a function to evaluate an isosurface from
 # In this example we'll create a unit sphere
@@ -29,7 +31,11 @@ seed_values = np.array([0.0, 0.0])
 isovalue = 0.0
 
 # Create an isosurface for each closure mode
-for closure in [BoundaryClosure.None_, BoundaryClosure.ClosePositive, BoundaryClosure.CloseNegative]:
+for closure in [
+    BoundaryClosure.None_,
+    BoundaryClosure.ClosePositive,
+    BoundaryClosure.CloseNegative,
+]:
     mesh = build_isosurface(
         seed_points,
         extents,

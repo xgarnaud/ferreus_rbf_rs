@@ -1,26 +1,27 @@
-'''
+"""
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Stubs file for Python bindings of the config module that enables typehints in IDE's.
 //
-// Created on: 15 Nov 2025     Author: Daniel Owen 
+// Created on: 15 Nov 2025     Author: Daniel Owen
 //
-// Copyright (c) 2025, Maptek Pty Ltd. All rights reserved. Licensed under the MIT License. 
+// Copyright (c) 2025, Maptek Pty Ltd. All rights reserved. Licensed under the MIT License.
 //
 /////////////////////////////////////////////////////////////////////////////////////////////
-'''
+"""
 
 from enum import Enum
-from typing import Optional
+
 from ferreus_rbf.interpolant_config import RBFKernelType
 
 class Solvers(Enum):
     """
     Enum for the available iterative solvers.
     """
+
     DDM = 0
     """Domain Decomposition solver."""
-    
+
     FGMRES = 1
     """Flexible generalised minimal residual method (FGMRES) solver."""
 
@@ -30,6 +31,7 @@ class FmmCompressionType(Enum):
     FMM evaluator.
 
     """
+
     None_ = 0
     """No compression applied to M2L operators"""
 
@@ -42,17 +44,17 @@ class FmmCompressionType(Enum):
 class DDMParams:
     """
     Parameters controlling construction of the **domain decomposition hierarchy**.
-    
+
     `ferreus_rbf` employs a *domain decomposition preconditioner* to accelerate
     convergence of the iterative RBF solver. The algorithm recursively partitions
     the input point cloud into a hierarchy of overlapping subdomains, within which
     local RBF systems are solved directly and combined to form a global preconditioner.
-    
+
     This class defines the key thresholds and ratios governing how that
     hierarchy is generated - for example, the number of points permitted per
     leaf domain, how much overlap occurs between neighboring subdomains, and
     the scale at which coarse levels are formed.
-    
+
     ### Intended Usage
     This configuration is part of the public API mainly for **developers and
     advanced users** who wish to experiment with or tune the decomposition
@@ -61,13 +63,13 @@ class DDMParams:
     In general, the default values have been selected to provide
     a robust trade-off between memory usage and solver performance across
     a wide range of problem sizes.
-    
-    Default values when [`DDMParams`][ferreus_rbf.config.DDMParams] isn't provided to [`RBFInterpolator`][ferreus_rbf.RBFInterpolator]: 
 
-    - `leaf_threshold`: `1024`  
-    - `overlap_quota`: `0.5`  
-    - `coarse_ratio`: `0.125`  
-    - `coarse_threshold`: `4096`     
+    Default values when [`DDMParams`][ferreus_rbf.config.DDMParams] isn't provided to [`RBFInterpolator`][ferreus_rbf.RBFInterpolator]:
+
+    - `leaf_threshold`: `1024`
+    - `overlap_quota`: `0.5`
+    - `coarse_ratio`: `0.125`
+    - `coarse_threshold`: `4096`
 
     Parameters
     ----------
@@ -91,34 +93,34 @@ class DDMParams:
 class FmmParams:
     """
     Parameters controlling the **Fast Multipole Method (FMM)** evaluator.
-    
+
     These settings configure the ``ferreus_bbfmm`` backend, which performs
     fast evaluation of RBF interpolants by hierarchically partitioning space
     and approximating long-range interactions through low-rank interpolation
     and optional M2L operator compression.
-    
+
     ### Intended Usage
     This configuration is primarily exposed for **developers and advanced users**
     who wish to experiment with or tune FMM performance. In general, the
     default values have been selected to provide a rubust balance between accuracy,
     memory usage, and computation time across a broad range of problems.
-    
+
     Increasing the interpolation order improves accuracy but also increases
-    computational cost. Orders that are too low may stall solver convergence.  
+    computational cost. Orders that are too low may stall solver convergence.
 
     Default interpolation order:
 
     - Linear and Spheroidal kernels -> `7`
     - ThinPlateSpline kernel -> `9`
-    - Cubic kernel -> `11`  
-    
-    Default values when [`FmmParams`][ferreus_rbf.config.FmmParams] isn't provided to [`RBFInterpolator`][ferreus_rbf.RBFInterpolator]: 
-    
-    - `interpolation_order`: *kernel dependent*  
-    - `max_points_per_cell`: `256`  
-    - `compression_type`: [`FmmCompressionType.ACA`][ferreus_rbf.config.FmmCompressionType.ACA]  
-    - `epsilon`: `10^(-interpolation_order)`  
-    - `eval_chunk_size`: `1024`  
+    - Cubic kernel -> `11`
+
+    Default values when [`FmmParams`][ferreus_rbf.config.FmmParams] isn't provided to [`RBFInterpolator`][ferreus_rbf.RBFInterpolator]:
+
+    - `interpolation_order`: *kernel dependent*
+    - `max_points_per_cell`: `256`
+    - `compression_type`: [`FmmCompressionType.ACA`][ferreus_rbf.config.FmmCompressionType.ACA]
+    - `epsilon`: `10^(-interpolation_order)`
+    - `eval_chunk_size`: `1024`
 
     Parameters
     ----------
@@ -150,23 +152,23 @@ class Params:
     domain decomposition behaviour, fast multipole settings, and other
     controls for model fitting and evaluation.
 
-    Default values when [`Params`][ferreus_rbf.config.Params] isn't provided to [`RBFInterpolator`][ferreus_rbf.RBFInterpolator]: 
+    Default values when [`Params`][ferreus_rbf.config.Params] isn't provided to [`RBFInterpolator`][ferreus_rbf.RBFInterpolator]:
 
-    - `solver_type`: [`Solvers.FGMRES`][ferreus_rbf.config.Solvers.FGMRES]   
-    - `ddm_params`: Default DDMParams  
-    - `fmm_params`: Default FmmParams  
-    - `naive_solve_threshold`: `4096`  
-    - `test_unique`: `true`  
+    - `solver_type`: [`Solvers.FGMRES`][ferreus_rbf.config.Solvers.FGMRES]
+    - `ddm_params`: Default DDMParams
+    - `fmm_params`: Default FmmParams
+    - `naive_solve_threshold`: `4096`
+    - `test_unique`: `true`
     """
     def __init__(
         self,
         kernel_type: RBFKernelType,
-        solver_type: Optional[Solvers] = None,
-        ddm_params: Optional[DDMParams] = None,
-        fmm_params: Optional[FmmParams] = None,
-        naive_solve_threshold: Optional[int] = None,
-        test_unique: Optional[bool] = None,
-    ) -> None: 
+        solver_type: Solvers | None = None,
+        ddm_params: DDMParams | None = None,
+        fmm_params: FmmParams | None = None,
+        naive_solve_threshold: int | None = None,
+        test_unique: bool | None = None,
+    ) -> None:
         """
         Parameters
         ----------
@@ -183,4 +185,3 @@ class Params:
         test_unique : Optional[bool]
             Whether to test for and remove duplicate source points. This is highly recommended, as in order to ensure a unique solution to the RBF, the source points must be unique.
         """
-        ...

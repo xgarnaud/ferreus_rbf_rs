@@ -78,11 +78,11 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-stable-${{ hashFiles('**/Cargo.toml', '**/rust-toolchain.toml') }}
           restore-keys: ${{ runner.os }}-cargo-stable-
-    # - name: Run ruff
-    #   run: |
-    #     pip install ruff
-    #     ruff check
-    #     ruff format --check
+    - name: Run ruff
+      run: |
+        pip install ruff
+        ruff check
+        ruff format --check
     - name: Test 
       run: |
         cd py_ferreus_rbf

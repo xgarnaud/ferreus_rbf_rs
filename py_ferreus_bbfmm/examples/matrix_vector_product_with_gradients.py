@@ -1,5 +1,6 @@
 import numpy as np
-from ferreus_bbfmm import FmmTree, FmmKernelType, KernelParams
+
+from ferreus_bbfmm import FmmKernelType, FmmTree, KernelParams
 
 # Choose a kernel
 kernel_params = KernelParams(FmmKernelType.LinearRbf)

@@ -1,10 +1,11 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from ferreus_rbf import RBFInterpolator, RBFTestFunctions
+import numpy as np
 from ferreus_rbf.interpolant_config import (
-    RBFKernelType,
     InterpolantSettings,
+    RBFKernelType,
 )
+
+from ferreus_rbf import RBFInterpolator, RBFTestFunctions
 
 np.random.seed(42)
 

@@ -26,19 +26,25 @@ from ferreus_rbf.progress import (
     SurfacingProgress,
     DuplicatesRemoved,
     Message,
-    ProgressEvent
+    ProgressEvent,
 )
+
 
 # Create a function to handle each ProgressEvent type
 def on_progress(event: ProgressEvent) -> None:
     if isinstance(event, DuplicatesRemoved):
         print(f"Removed duplicates: {event.num_duplicates}")
     elif isinstance(event, SolverIteration):
-        print(f"Iteration: {event.iter:3d}  {event.residual:>.5E}  {(event.progress * 100):.1f}%")
+        print(
+            f"Iteration: {event.iter:3d}  {event.residual:>.5E}  {(event.progress * 100):.1f}%"
+        )
     elif isinstance(event, Message):
         print(event.message)
     elif isinstance(event, SurfacingProgress):
-        print(f"Isovalue: {event.isovalue}  Stage: {event.stage}  {(event.progress * 100):.1f}%")
+        print(
+            f"Isovalue: {event.isovalue}  Stage: {event.stage}  {(event.progress * 100):.1f}%"
+        )
+
 
 # Create a Progress instance using the on_progress function
 prog = Progress(callback=on_progress)
