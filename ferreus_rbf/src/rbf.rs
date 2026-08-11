@@ -539,21 +539,26 @@ impl RBFInterpolator {
 
             for col in 0..num_val_cols {
                 let all_coefficients = match self.params.solver_type {
-                    Solvers::FGMRES => iterative_solvers::fgmres(
+                    Solvers::FGMRES {
+                        max_outer_iterations,
+                        max_inner_iterations,
+                    } => iterative_solvers::fgmres(
                         &matvec,
                         rhs.submatrix(0, col, rhs.nrows(), 1),
                         Some(&precon),
                         None,
-                        20,
-                        5,
+                        max_outer_iterations,
+                        max_inner_iterations,
                         &self.interpolant_settings.fitting_accuracy,
                         self.progress_callback.clone(),
                     ),
-                    Solvers::DDM => iterative_solvers::schwarz_ddm_solver(
+                    Solvers::DDM {
+                        max_iterations: max_interations,
+                    } => iterative_solvers::schwarz_ddm_solver(
                         &matvec,
                         rhs.submatrix(0, col, rhs.nrows(), 1),
                         Some(&precon),
-                        100,
+                        max_interations,
                         &self.interpolant_settings.fitting_accuracy,
                         self.progress_callback.clone(),
                     ),

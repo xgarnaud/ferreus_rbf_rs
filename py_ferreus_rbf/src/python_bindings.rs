@@ -190,18 +190,23 @@ impl From<BoundaryClosure> for RbfBoundaryClosure {
     }
 }
 
-#[pyclass(eq, eq_int)]
+#[pyclass(eq)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Solvers {
-    DDM,
-    FGMRES,
+    DDM(usize),
+    FGMRES(usize, usize),
 }
 
 impl From<Solvers> for config::Solvers {
     fn from(s: Solvers) -> config::Solvers {
         match s {
-            Solvers::DDM => config::Solvers::DDM,
-            Solvers::FGMRES => config::Solvers::FGMRES,
+            Solvers::DDM(max_iterations) => config::Solvers::DDM { max_iterations },
+            Solvers::FGMRES(max_outer_iterations, max_inner_iterations) => {
+                config::Solvers::FGMRES {
+                    max_outer_iterations,
+                    max_inner_iterations,
+                }
+            }
         }
     }
 }
@@ -589,7 +594,7 @@ impl Params {
     ) -> Self {
         Self {
             inner: config::Params {
-                solver_type: solver_type.unwrap_or(Solvers::FGMRES).into(),
+                solver_type: solver_type.map_or(config::Solvers::default(), |s| s.into()),
                 ddm_params: {
                     match ddm_params.is_some() {
                         true => ddm_params.unwrap().inner,
